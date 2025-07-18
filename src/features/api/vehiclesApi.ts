@@ -1,33 +1,44 @@
 // src/features/api/vehiclesApi.ts
 
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { apiDomain } from "../../proxxy";
+import { apiDomain } from '../../proxxy';
 import type { RootState } from '../../app/store';
 
+// VehicleSpec type used inside the Vehicle and CreateVehiclePayload
+export interface VehicleSpec {
+  model: string;
+  brand: string;
+  color: string;
+  year: number;
+  fuelType: string;
+  engineCapacity: string;
+  transmission: string;
+  seatingCapacity: number;
+  features: string;
+}
+
+// Returned Vehicle object from backend
 export interface Vehicle {
   vehicleId: number;
   rentalRate: number;
-  availability: string;
+  availability: boolean;
   vehicleSpecId: number;
-  vehicleSpec?: {
-    model?: string;
-    brand?: string;
-    color?: string;
-    year?: number;
-  };
+  vehicleSpec?: VehicleSpec;
   createdAt?: string;
   updatedAt?: string;
 }
 
+// Payload for creating a vehicle (with new spec)
 export interface CreateVehiclePayload {
   rentalRate: number;
-  availability: string;
-  vehicleSpecId: number;
+  availability: boolean;
+  vehicleSpec: VehicleSpec;
 }
 
+// Payload for updating an existing vehicle (spec already created)
 export interface UpdateVehiclePayload {
   rentalRate: number;
-  availability: string;
+  availability: boolean;
   vehicleSpecId: number;
 }
 

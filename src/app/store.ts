@@ -7,6 +7,7 @@ import vehicleApi from '../features/api/vehiclesApi';
 import ticketsApi from '../features/api/supportTicketsApi';
 import bookingsApi from '../features/api/bookingsApi';
 import { paymentsApi } from '../features/api/PaymentsApi';
+import locationsApi from '../features/api/locationApi';
 
 
 
@@ -28,13 +29,14 @@ export const store = configureStore({
     [ticketsApi.reducerPath]: ticketsApi.reducer,
     [bookingsApi.reducerPath]: bookingsApi.reducer,
     [paymentsApi.reducerPath]: paymentsApi.reducer,
+    [locationsApi.reducerPath]:locationsApi.reducer,
     
     auth: persistedAuthReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: false, 
-    }).concat(userApi.middleware,vehicleApi.middleware,ticketsApi.middleware,bookingsApi.middleware,paymentsApi.middleware), 
+    }).concat(userApi.middleware,vehicleApi.middleware,ticketsApi.middleware,bookingsApi.middleware,paymentsApi.middleware,locationsApi.middleware), 
 });
 
 // Export the persisted store

@@ -48,18 +48,18 @@ export const bookingsApi = createApi({
     }),
 
     getBookingById: builder.query<Booking, number>({
-      query: (bookingId) => `bookings/${bookingId}`,
+      query: (bookingId) => `booking/${bookingId}`, // Changed from 'bookings' to 'booking' for consistency
       providesTags: (result, error, id) => [{ type: "booking", id }],
     }),
 
     getBookingsByUserId: builder.query<Booking[], number>({
-      query: (userId) => `bookings/user?userId=${userId}`,
-      providesTags: ["bookings"], 
+      query: (userId) => `booking/user/${userId}`, // Changed from 'bookings/user?userId=' to 'booking/user/' for consistency with your route
+      providesTags: ["bookings"],
     }),
 
     createBooking: builder.mutation<Booking, CreateBookingPayload>({
       query: (bookingData) => ({
-        url: "bookings",
+        url: "booking", // **THIS IS THE KEY CHANGE: Changed from "bookings" to "booking"**
         method: "POST",
         body: bookingData,
       }),
@@ -68,7 +68,7 @@ export const bookingsApi = createApi({
 
     updateBooking: builder.mutation<Booking, UpdateBookingPayload>({
       query: ({ bookingId, ...patch }) => ({
-        url: `bookings/${bookingId}`,
+        url: `booking/${bookingId}`, // Changed from 'bookings' to 'booking' for consistency
         method: "PUT",
         body: patch,
       }),
@@ -77,7 +77,7 @@ export const bookingsApi = createApi({
 
     deleteBooking: builder.mutation<{ message: string }, number>({
       query: (bookingId) => ({
-        url: `bookings/${bookingId}`,
+        url: `booking/${bookingId}`, // Changed from 'bookings' to 'booking' for consistency
         method: "DELETE",
       }),
       invalidatesTags: ["bookings"],
