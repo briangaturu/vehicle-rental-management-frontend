@@ -4,8 +4,9 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { apiDomain } from '../../proxxy';
 import type { RootState } from '../../app/store';
 
-// VehicleSpec type used inside the Vehicle and CreateVehiclePayload
+// VehicleSpec type
 export interface VehicleSpec {
+  vehicleSpecId: number; // Assuming your backend returns an ID for the spec
   model: string;
   brand: string;
   color: string;
@@ -15,6 +16,8 @@ export interface VehicleSpec {
   transmission: string;
   seatingCapacity: number;
   features: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // Returned Vehicle object from backend
@@ -24,22 +27,25 @@ export interface Vehicle {
   availability: boolean;
   vehicleSpecId: number;
   vehicleSpec?: VehicleSpec;
+  imageUrl?: string;
   createdAt?: string;
   updatedAt?: string;
 }
 
-// Payload for creating a vehicle (with new spec)
+// Payload for creating a vehicle (with existing spec ID)
 export interface CreateVehiclePayload {
   rentalRate: number;
   availability: boolean;
-  vehicleSpec: VehicleSpec;
+  imageUrl?: string;
+  vehicleSpecId: number;
 }
 
-// Payload for updating an existing vehicle (spec already created)
+// Payload for updating an existing vehicle
 export interface UpdateVehiclePayload {
-  rentalRate: number;
-  availability: boolean;
-  vehicleSpecId: number;
+  rentalRate?: number;
+  availability?: boolean;
+  imageUrl?: string;
+  vehicleSpecId?: number;
 }
 
 export const vehicleApi = createApi({
@@ -55,7 +61,7 @@ export const vehicleApi = createApi({
       return headers;
     }
   }),
-  tagTypes: ['vehicles', 'vehicle'],
+  tagTypes: ['vehicles', 'vehicle', 'vehicleSpecs'], // Add 'vehicleSpecs' tag type
   endpoints: (builder) => ({
     getAllVehicles: builder.query<Vehicle[], void>({
       query: () => 'vehicles',
@@ -64,6 +70,11 @@ export const vehicleApi = createApi({
     getVehicleById: builder.query<Vehicle, number>({
       query: (vehicleId) => `vehicles/${vehicleId}`,
       providesTags: (result, error, id) => [{ type: 'vehicle', id }],
+    }),
+    // ⭐️ NEW: Endpoint to fetch all vehicle specifications
+    getAllVehicleSpecs: builder.query<VehicleSpec[], void>({
+      query: () => 'vehiclespecs', // Adjust this URL if your backend endpoint is different
+      providesTags: ['vehicleSpecs'],
     }),
     createVehicle: builder.mutation<Vehicle, CreateVehiclePayload>({
       query: (vehicleData) => ({
@@ -97,6 +108,7 @@ export const vehicleApi = createApi({
 export const {
   useGetAllVehiclesQuery,
   useGetVehicleByIdQuery,
+  useGetAllVehicleSpecsQuery, // ⭐️ NEW: Export the new hook
   useCreateVehicleMutation,
   useUpdateVehicleMutation,
   useDeleteVehicleMutation,

@@ -17,7 +17,7 @@ const Payments: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Get user from Redux store
+  
   const userFromRedux = useSelector(
     (state: RootState) => state.auth.user
   );

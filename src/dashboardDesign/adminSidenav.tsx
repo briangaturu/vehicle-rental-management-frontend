@@ -1,5 +1,3 @@
-// src/components/Sidebar.tsx
-
 import React from 'react';
 import {
   FaTachometerAlt,
@@ -8,7 +6,8 @@ import {
   FaUsers,
   FaMoneyBillAlt,
   FaHeadphones,
-  FaPowerOff
+  FaPowerOff,
+  FaCog, // ✅ NEW: Import FaCog icon for specs
 } from 'react-icons/fa';
 import { useDispatch } from 'react-redux';
 import { clearCredentials } from '../features/auth/authSlice';
@@ -36,6 +35,8 @@ const AdminSidenav: React.FC<AdminSidenavProps> = ({ onSelect }) => {
       <nav className="flex-1 space-y-4">
         <NavItem icon={<FaTachometerAlt />} label="Dashboard" onClick={onSelect} />
         <NavItem icon={<FaCar />} label="Vehicles" onClick={onSelect} />
+        {/* ✅ NEW: Add NavItem for Vehicle Specs */}
+        <NavItem icon={<FaCog />} label="Vehicle Specs" onClick={onSelect} />
         <NavItem icon={<FaClipboardList />} label="Bookings" onClick={onSelect} />
         <NavItem icon={<FaUsers />} label="Users" onClick={onSelect} />
         <NavItem icon={<FaMoneyBillAlt />} label="Payments" onClick={onSelect} />

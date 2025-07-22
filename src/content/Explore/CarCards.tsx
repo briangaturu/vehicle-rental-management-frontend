@@ -1,5 +1,5 @@
 // src/content/Explore/CarCards.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   FaGasPump,
   FaCogs,
@@ -8,9 +8,9 @@ import {
   FaTimesCircle,
 } from 'react-icons/fa';
 
-import {type Vehicle } from '../../features/api/vehiclesApi';
+import { type Vehicle } from '../../features/api/vehiclesApi';
 import { useCreateBookingMutation } from '../../features/api/bookingsApi';
-import { useGetAllLocationsQuery } from '../../features/api/locationApi'; 
+import { useGetAllLocationsQuery } from '../../features/api/locationApi';
 import { useSelector } from 'react-redux';
 import { type RootState } from '../../app/store';
 
@@ -19,25 +19,47 @@ interface CarCardProps {
 }
 
 const CarCard: React.FC<CarCardProps> = ({ vehicles }) => {
-  // State to control modal visibility
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // State to store the vehicle currently selected for booking
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
 
   // Modal form states
   const [bookingDate, setBookingDate] = useState('');
   const [returnDate, setReturnDate] = useState('');
   const [totalAmount, setTotalAmount] = useState(0);
-  const [selectedLocationId, setSelectedLocationId] = useState(''); // Changed to hold selected location ID
+  const [selectedLocationId, setSelectedLocationId] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  // Access userId from Redux state
   const userId = useSelector((state: RootState) => state.auth.user?.id);
 
-  // RTK Query hooks
-  const [createBooking, { isLoading: isBookingLoading, isSuccess: isBookingSuccess, isError: isBookingError, error: bookingError }] = useCreateBookingMutation();
-  const { data: locations, isLoading: isLocationsLoading, isError: isLocationsError, error: locationsError } = useGetAllLocationsQuery(); // Fetch locations
+  const [
+    createBooking,
+    {
+      isLoading: isBookingLoading,
+      isSuccess: isBookingSuccess,
+      isError: isBookingError,
+      error: bookingError,
+    },
+  ] = useCreateBookingMutation();
+  const {
+    data: locations,
+    isLoading: isLocationsLoading,
+    isError: isLocationsError,
+    error: locationsError,
+  } = useGetAllLocationsQuery();
+
+  // Handle closing the modal - memoized for useEffect dependency
+  const handleCloseModal = useCallback(() => {
+    setIsModalOpen(false);
+    setSelectedVehicle(null); // Clear selected vehicle
+    // Reset form fields when closing
+    setBookingDate('');
+    setReturnDate('');
+    setTotalAmount(0);
+    setSelectedLocationId('');
+    setErrorMessage('');
+    setSuccessMessage('');
+  }, []);
 
   // Handle opening the modal
   const handleBookClick = (vehicle: Vehicle) => {
@@ -47,24 +69,25 @@ const CarCard: React.FC<CarCardProps> = ({ vehicles }) => {
     setBookingDate('');
     setReturnDate('');
     setTotalAmount(0);
-    setSelectedLocationId(''); // Reset selected location
+    setSelectedLocationId('');
     setErrorMessage('');
     setSuccessMessage('');
   };
 
-  // Handle closing the modal
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedVehicle(null); // Clear selected vehicle
-  };
-
   // Effect to calculate total amount when dates or selected vehicle change
   useEffect(() => {
-    if (bookingDate && returnDate && selectedVehicle) {
+    if (bookingDate && returnDate && selectedVehicle?.rentalRate) { // Ensure rentalRate is available
       const start = new Date(bookingDate);
       const end = new Date(returnDate);
 
       // Basic date validation: return date must be after booking date
+      // Also ensure dates are valid Date objects
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        setErrorMessage('Invalid date selection.');
+        setTotalAmount(0);
+        return;
+      }
+
       if (start >= end) {
         setErrorMessage('Return date must be after booking date.');
         setTotalAmount(0);
@@ -78,35 +101,38 @@ const CarCard: React.FC<CarCardProps> = ({ vehicles }) => {
       setErrorMessage(''); // Clear error if dates are now valid
     } else {
       setTotalAmount(0);
+      // setErrorMessage(''); // Consider clearing or setting a specific message if dates are empty
     }
   }, [bookingDate, returnDate, selectedVehicle]);
 
   // Handle success/error states from RTK Query booking mutation
   useEffect(() => {
     if (isBookingSuccess) {
-      setSuccessMessage('Booking created successfully!');
+      setSuccessMessage('Booking created successfully! Redirecting...');
       setTimeout(() => {
         handleCloseModal(); // Close modal on successful booking
         setSuccessMessage('');
-      }, 2000);
+      }, 2000); // Give user time to see success message
     }
     if (isBookingError) {
-      const apiError = (bookingError as any)?.data?.error || 'Failed to create booking.';
+      // Safely access error message
+      const apiError = (bookingError as any)?.data?.error || (bookingError as any)?.error || 'Failed to create booking.';
       setErrorMessage(apiError);
     }
-  }, [isBookingSuccess, isBookingError, bookingError, handleCloseModal]);
+  }, [isBookingSuccess, isBookingError, bookingError, handleCloseModal]); // Added handleCloseModal to dependencies
 
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(''); // Clear previous errors
+    setSuccessMessage(''); // Clear previous success messages
 
     if (!selectedVehicle) {
       setErrorMessage('No vehicle selected for booking.');
       return;
     }
-    if (!bookingDate || !returnDate || !selectedLocationId) { // Check for selectedLocationId
+    if (!bookingDate || !returnDate || !selectedLocationId) {
       setErrorMessage('Please fill in all required fields.');
       return;
     }
@@ -114,8 +140,15 @@ const CarCard: React.FC<CarCardProps> = ({ vehicles }) => {
       setErrorMessage('Please select valid dates to calculate total amount.');
       return;
     }
-    if (!userId) {
-      setErrorMessage('User not authenticated. Please log in.');
+    // Ensure userId is a valid number
+    const parsedUserId = userId ? parseInt(userId) : NaN;
+    if (isNaN(parsedUserId) || parsedUserId <= 0) {
+      setErrorMessage('User authentication error. Please log in again.');
+      return;
+    }
+    const parsedLocationId = parseInt(selectedLocationId);
+    if (isNaN(parsedLocationId) || parsedLocationId <= 0) {
+      setErrorMessage('Invalid pickup location selected.');
       return;
     }
 
@@ -124,14 +157,16 @@ const CarCard: React.FC<CarCardProps> = ({ vehicles }) => {
       returnDate,
       totalAmount,
       vehicleId: selectedVehicle.vehicleId,
-      locationId: parseInt(selectedLocationId), // Send the ID, not the name
-      userId: parseInt(userId),
+      locationId: parsedLocationId,
+      userId: parsedUserId,
     };
 
     try {
       await createBooking(bookingPayload).unwrap();
+      // Success message and modal closing handled by useEffect
     } catch (err) {
       console.error('Failed to create booking:', err);
+      // Error message handled by useEffect
     }
   };
 
@@ -155,9 +190,13 @@ const CarCard: React.FC<CarCardProps> = ({ vehicles }) => {
             {/* Image Area with View Button */}
             <div className="relative w-full h-48">
               <img
-                src={`https://via.placeholder.com/400x250?text=${
-                  vehicle.vehicleSpec?.brand || ''
-                }+${vehicle.vehicleSpec?.model || 'Car'}`}
+                // ✅ MODIFIED: Use vehicle.imageUrl if available, otherwise fallback to placeholder
+                src={
+                  vehicle.imageUrl ||
+                  `https://via.placeholder.com/400x250?text=${
+                    vehicle.vehicleSpec?.brand || ''
+                  }+${vehicle.vehicleSpec?.model || 'Car'}`
+                }
                 alt={`${vehicle.vehicleSpec?.brand || ''} ${
                   vehicle.vehicleSpec?.model || 'Vehicle'
                 }`}
@@ -166,7 +205,7 @@ const CarCard: React.FC<CarCardProps> = ({ vehicles }) => {
               {/* View Button Overlay */}
               <button
                 className="absolute bottom-3 right-3 bg-white text-[#001258] px-3 py-1 rounded-full text-xs font-semibold
-                           hover:bg-gray-200 transition-colors shadow-md"
+                                hover:bg-gray-200 transition-colors shadow-md"
                 onClick={() => console.log('View vehicle:', vehicle.vehicleId)}
               >
                 View

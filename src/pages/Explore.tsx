@@ -25,7 +25,7 @@ const Explore: React.FC = () => {
   }
 
   if (error) {
-    // A more robust error handling could parse the error object
+    
     const errorMessage = (error as any)?.data?.error || (error as any)?.message || 'Failed to load vehicles. Please try again later.';
     return (
       <>
@@ -39,7 +39,7 @@ const Explore: React.FC = () => {
     );
   }
 
-  // If no vehicles are found after loading
+  
   if (!vehicles || vehicles.length === 0) {
     return (
       <>
@@ -59,7 +59,7 @@ const Explore: React.FC = () => {
       <main className="max-w-7xl mx-auto px-4 py-8">
         <Header />
 
-        {/* Pass the fetched vehicles data to the CarCard component */}
+       
         <CarCard vehicles={vehicles} />
 
         <CallToAction />

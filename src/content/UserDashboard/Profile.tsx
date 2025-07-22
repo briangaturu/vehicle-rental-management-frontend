@@ -1,265 +1,262 @@
 import { useEffect, useState } from 'react';
-import { FaCamera, FaEdit, FaTimes, FaKey } from 'react-icons/fa';
+import { FaCamera, FaEdit, FaTimes } from 'react-icons/fa';
 import { useSelector } from "react-redux";
 import { useNavigate } from 'react-router-dom';
 import { useForm, type SubmitHandler } from 'react-hook-form';
-import type { RootState } from '../../app/store';
 import { SaveIcon } from 'lucide-react';
-import axios from 'axios';
+import type { RootState } from '../../app/store';
+import Swal from 'sweetalert2';
+import {
+  useUpdateUserProfileMutation,
+  useUpdateUserProfileImageMutation
+} from '../../features/api/userApi';
 
 interface FormValues {
-  firstName: string;
-  lastName: string;
+  firstname: string;
+  lastname: string;
   email: string;
-  password: string;
   address: string;
   contact: string;
 }
 
-const UserProfile = () => {
+const Profile = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { user, isAuthenticated, role } = useSelector((state: RootState) => state.auth);
 
-  const [profileData, setProfileData] = useState<any>(null);
+  const { register, handleSubmit, formState: { errors }, reset } = useForm<FormValues>({
+    defaultValues: {
+      firstname: user?.firstname || '',
+      lastname: user?.lastname || '',
+      email: user?.email || '',
+      address: user?.address || '',
+      contact: user?.contact || '',
+    }
+  });
+
+  const profilePicture = user?.profileUrl ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.firstname || 'User')}+${encodeURIComponent(user?.lastname || 'Profile')}&background=EF4444&color=fff&size=128`;
+
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const profilePicture = user?.profileUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(
-    `${user?.firstName || ""} ${user?.lastName || ""}`
-  )}&background=ef4444&color=fff&size=128`;
+  const [updateProfile, { isLoading: isUpdatingProfile }] = useUpdateUserProfileMutation();
+  const [updateProfileImage, { isLoading: isUploadingImage }] = useUpdateUserProfileImageMutation();
 
   const handleModalToggle = () => {
     setIsModalOpen(!isModalOpen);
+    if (!isModalOpen && user) {
+      reset({
+        firstname: user.firstname,
+        lastname: user.lastname,
+        email: user.email,
+        address: user.address || '',
+        contact: user.contact || '',
+      });
+    }
   };
 
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login');
-    } else {
-      fetchUserData();
+    } else if (role === 'user') {
+      navigate('/user/profile');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated]);
-
-  const fetchUserData = async () => {
-    try {
-      const userId = user?.id || user?.userId;
-const { data } = await axios.get(`/api/users/${userId}`);
-
-      setProfileData(data);
-    } catch (error) {
-      console.error("Failed to fetch user:", error);
-    }
-  };
-
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>();
-
-  useEffect(() => {
-    if (profileData) {
-      reset({
-        firstName: profileData.firstname,
-        lastName: profileData.lastname,
-        email: profileData.email,
-        password: profileData.password,
-        address: profileData.address,
-        contact: profileData.contact,
-      });
-    }
-  }, [profileData, reset]);
+  }, [isAuthenticated, role, navigate]);
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     try {
-      setLoading(true);
-      const payload = {
-        firstname: data.firstName,
-        lastname: data.lastName,
-        email: data.email,
-        password: data.password,
-        userId: user?.userId,
-        address: data.address,
-        contact: data.contact,
-      };
+      const userId = user?.userId;
+      if (!userId) {
+        Swal.fire('Error!', 'User ID not found. Cannot update profile.', 'error');
+        return;
+      }
 
-      const res = await axios.put(`/api/users/${user?.id}`, payload);
-      console.log("User updated:", res.data);
-      setIsModalOpen(false);
-      fetchUserData();
-
+      await updateProfile({ userId, ...data, password:user.password }).unwrap();
+      Swal.fire('Success!', 'Profile updated successfully!', 'success');
+      handleModalToggle();
     } catch (error: any) {
-      console.error("Update failed:", error.response?.data || error.message);
-    } finally {
-      setLoading(false);
+      console.error('Failed to update profile:', error);
+      Swal.fire('Error!', error?.data?.message || 'Failed to update profile. Please try again.', 'error');
     }
   };
 
-  if (!profileData) {
-    return (
-      <div className="p-10 text-center text-gray-300">Loading profile...</div>
-    );
-  }
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      Swal.fire({
+        title: 'Uploading Image...',
+        text: 'Please wait, your profile picture is being uploaded.',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      try {
+        const userId = user?.userId;
+        if (!userId) {
+          Swal.fire('Error!', 'User ID not found for image upload.', 'error');
+          return;
+        }
+
+        const temporaryProfileUrl = URL.createObjectURL(file);
+
+        await updateProfileImage({ userId, profileUrl: temporaryProfileUrl }).unwrap();
+        Swal.fire('Success!', 'Profile image updated successfully!', 'success');
+      } catch (error: any) {
+        console.error('Failed to update profile image:', error);
+        Swal.fire('Error!', error?.data?.message || 'Failed to upload image. Please try again.', 'error');
+      }
+    }
+  };
 
   return (
-    <div className="min-h-screen text-white py-10 px-5 bg-white">
-      <div className="max-w-4xl mx-auto rounded-lg shadow-lg p-5 bg-red-600">
-        {/* HEADER */}
-        <div className="flex flex-col md:flex-row items-center justify-between border-b border-gray-700 pb-5 mb-5">
+    <div className="min-h-screen text-gray-800 py-10 px-5 bg-gradient-to-br from-white to-red-50">
+      <div className="max-w-4xl mx-auto rounded-lg shadow-xl overflow-hidden bg-white border border-gray-200">
+
+        {/* Header */}
+        <div className="bg-red-700 text-white p-6 flex flex-col md:flex-row items-center justify-between shadow-md">
           <div className="relative flex items-center gap-4 mb-4 md:mb-0">
             <img
-              src={profilePicture}
+              src={user?.profileUrl || profilePicture}
               alt="Profile"
-              className="w-24 h-24 rounded-full border-4 border-[#0F172A] object-cover"
+              className="w-28 h-28 rounded-full border-4 border-orange-400 object-cover shadow-lg"
             />
-            <label className="absolute bottom-0 bg-[#0F172A] p-2 rounded-full cursor-pointer">
-              <FaCamera />
-              <input type="file" className="hidden" />
+            <label
+              htmlFor="profile-picture-upload"
+              className="absolute bottom-0 right-0 md:right-auto md:left-20 bg-orange-500 p-2 rounded-full cursor-pointer hover:bg-orange-600 transition-colors duration-200 shadow-md"
+              title="Change Profile Picture"
+            >
+              <FaCamera className="text-white text-lg" />
+              <input
+                type="file"
+                id="profile-picture-upload"
+                className="hidden"
+                onChange={handleImageUpload}
+                accept="image/*"
+                disabled={isUploadingImage}
+              />
             </label>
             <div>
-              <h2 className="text-3xl font-bold">
-                {profileData.firstname} {profileData.lastname}
+              <h2 className="text-4xl font-extrabold mb-1">
+                {user?.firstname || 'User'} {user?.lastname || 'Profile'}
               </h2>
-              <p className="text-gray-400">{profileData.email}</p>
+              <p className="text-red-200 text-lg">{user?.email}</p>
+              {user?.role && (
+                <span className="badge badge-lg bg-red-200 text-red-800 font-semibold mt-2">
+                  {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                </span>
+              )}
             </div>
           </div>
-          <div className="flex gap-3">
-            <button
-              className="flex items-center gap-2 px-4 py-2 rounded bg-[#0F172A] hover:bg-[#dc2626] transition"
-              onClick={handleModalToggle}
-            >
-              <FaEdit /> Edit Profile
-            </button>
-            <button
-              className="flex items-center gap-2 px-4 py-2 rounded bg-[#0F172A] hover:bg-[#dc2626] transition"
-            >
-              <FaKey /> Change Password
-            </button>
-          </div>
+          <button
+            className="btn bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-colors duration-200 flex items-center gap-2"
+            onClick={handleModalToggle}
+            disabled={isUpdatingProfile || isUploadingImage}
+          >
+            <FaEdit className="text-lg" /> Edit Profile
+          </button>
         </div>
 
-        {/* DETAILS */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-[#0F172A] rounded-lg p-7">
-            <h3 className="text-2xl font-bold mb-3 text-white">Personal Information</h3>
-            <p className="mb-2">
-              <span className="font-bold text-white">First Name:</span> {profileData.firstname}
+        {/* Profile Info */}
+        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="bg-gray-50 rounded-lg p-6 border border-gray-200 shadow-sm">
+            <h3 className="text-2xl font-bold mb-4 text-red-700 border-b pb-2 border-red-200">Personal Information</h3>
+            <div className="space-y-3 text-gray-700">
+              <p><span className="font-semibold text-red-600">First Name:</span> {user?.firstname || 'N/A'}</p>
+              <p><span className="font-semibold text-red-600">Last Name:</span> {user?.lastname || 'N/A'}</p>
+              <p><span className="font-semibold text-red-600">Email:</span> {user?.email || 'N/A'}</p>
+              <p><span className="font-semibold text-red-600">Contact:</span> {user?.contact || 'N/A'}</p>
+              <p><span className="font-semibold text-red-600">Address:</span> {user?.address || 'N/A'}</p>
+            </div>
+          </div>
+
+          <div className="bg-gray-50 rounded-lg p-6 border border-gray-200 shadow-sm">
+            <h3 className="text-2xl font-bold mb-4 text-red-700 border-b pb-2 border-red-200">Security Settings</h3>
+            <p className="mb-4 text-gray-700">
+              <span className="font-semibold text-red-600">Password:</span> ********
             </p>
-            <p className="mb-2">
-              <span className="font-bold text-white">Last Name:</span> {profileData.lastname}
-            </p>
-            <p className="mb-2">
-              <span className="font-bold text-white">Address:</span> {profileData.address}
-            </p>
-            <p className="mb-2">
-              <span className="font-bold text-white">Contact:</span> {profileData.contact}
-            </p>
+            <button
+              className="btn bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-colors duration-200"
+              disabled
+            >
+              Change Password
+            </button>
           </div>
         </div>
       </div>
 
-      {/* MODAL */}
+      {/* Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-          <div className="bg-[#1E293B] p-8 rounded-lg w-full max-w-md">
-            <h2 className="text-2xl font-bold text-[#ef4444] mb-6 text-center">
-              Edit Profile
-            </h2>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-[#ef4444]">
-                  First Name
-                </label>
+        <div className="modal modal-open flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="modal-box bg-white p-8 rounded-lg shadow-xl relative max-w-lg w-full text-gray-800">
+            <button
+              className="btn btn-sm btn-circle absolute right-4 top-4 bg-gray-200 hover:bg-gray-300 text-gray-700"
+              onClick={handleModalToggle}
+              disabled={isUpdatingProfile}
+            >
+              ✕
+            </button>
+            <div className="flex justify-center items-center mb-6">
+              <h2 className="text-3xl font-bold text-red-700">Edit Your Profile</h2>
+            </div>
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
                 <input
                   type="text"
-                  id="firstName"
-                  className="input w-full text-gray-900"
-                  {...register('firstName', { required: 'First name is required' })}
+                  className="input input-bordered w-full text-gray-800"
+                  {...register('firstname', { required: 'First Name is required' })}
                 />
-                {errors.firstName && (
-                  <p className="text-red-500 text-sm">{errors.firstName.message}</p>
-                )}
+                {errors.firstname && <p className="text-red-500 text-sm mt-1">{errors.firstname.message}</p>}
               </div>
-              <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-[#ef4444]">
-                  Last Name
-                </label>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
                 <input
                   type="text"
-                  id="lastName"
-                  className="input w-full text-gray-900"
-                  {...register('lastName', { required: 'Last name is required' })}
+                  className="input input-bordered w-full text-gray-800"
+                  {...register('lastname', { required: 'Last Name is required' })}
                 />
-                {errors.lastName && (
-                  <p className="text-red-500 text-sm">{errors.lastName.message}</p>
-                )}
+                {errors.lastname && <p className="text-red-500 text-sm mt-1">{errors.lastname.message}</p>}
               </div>
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-[#ef4444]">
-                  Email
-                </label>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                 <input
                   type="email"
-                  id="email"
-                  disabled
-                  className="input w-full bg-gray-800 border-gray-700 text-white"
-                  {...register('email', { required: 'Email is required' })}
+                  readOnly
+                  className="input input-bordered w-full bg-gray-100 text-gray-500 cursor-not-allowed"
+                  {...register('email')}
                 />
               </div>
-              <div>
-                <label htmlFor="address" className="block text-sm font-medium text-[#ef4444]">
-                  Address
-                </label>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Contact</label>
                 <input
                   type="text"
-                  id="address"
-                  className="input w-full text-gray-900"
-                  {...register('address', { required: 'Address is required' })}
+                  className="input input-bordered w-full text-gray-800"
+                  {...register('contact')}
                 />
-                {errors.address && (
-                  <p className="text-red-500 text-sm">{errors.address.message}</p>
-                )}
               </div>
-              <div>
-                <label htmlFor="contact" className="block text-sm font-medium text-[#ef4444]">
-                  Contact
-                </label>
-                <input
-                  type="text"
-                  id="contact"
-                  className="input w-full text-gray-900"
-                  {...register('contact', { required: 'Contact is required' })}
-                />
-                {errors.contact && (
-                  <p className="text-red-500 text-sm">{errors.contact.message}</p>
-                )}
-              </div>
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-[#ef4444]">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  id="password"
-                  className="input w-full text-gray-900"
-                  {...register('password', { required: 'Password is required' })}
-                />
-                {errors.password && (
-                  <p className="text-red-500 text-sm">{errors.password.message}</p>
-                )}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                <textarea
+                  className="textarea textarea-bordered w-full text-gray-800"
+                  rows={3}
+                  {...register('address')}
+                ></textarea>
               </div>
 
-              <div className="flex justify-end mt-6">
+              <div className="flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={handleModalToggle}
-                  className="btn btn-error mr-2 flex items-center gap-2"
+                  className="btn bg-red-500 hover:bg-red-600 text-white font-bold shadow-md transition-colors duration-200 flex items-center gap-2"
                 >
                   <FaTimes /> Cancel
                 </button>
                 <button
                   type="submit"
-                  className="btn btn-primary flex items-center gap-2 bg-[#ef4444] hover:bg-[#dc2626] border-none"
-                  disabled={loading}
+                  className="btn bg-red-600 hover:bg-red-700 text-white font-bold shadow-md transition-colors duration-200 flex items-center gap-2"
+                  disabled={isUpdatingProfile}
                 >
-                  <SaveIcon size={16} /> {loading ? 'Saving...' : 'Save Profile'}
+                  <SaveIcon className="w-4 h-4" /> {isUpdatingProfile ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
             </form>
@@ -270,4 +267,4 @@ const { data } = await axios.get(`/api/users/${userId}`);
   );
 };
 
-export default UserProfile;
+export default Profile;

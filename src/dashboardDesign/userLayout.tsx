@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Sidebar from '../dashboardDesign/userSidebar.tsx';
-import UserNav from './userNav.tsx';
+import Navbar from '../components/Navbar.tsx';
 
 // Import all user pages:
 import UserDashboard from '../components/user/Dashboard.tsx';
@@ -40,7 +40,7 @@ const UserLayout: React.FC = () => {
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Navbar */}
         <header className="w-full shadow bg-white z-10">
-          <UserNav />
+          <Navbar />
         </header>
 
         {/* Page content */}

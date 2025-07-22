@@ -5,70 +5,57 @@ import {
   useGetAllVehiclesQuery,
   useCreateVehicleMutation,
   useDeleteVehicleMutation,
+  useGetAllVehicleSpecsQuery,
 } from "../../features/api/vehiclesApi";
 import { PuffLoader } from "react-spinners";
 import Swal from "sweetalert2";
 import { toast, Toaster } from "sonner";
+import axios from "axios";
 
-export interface Vehicle {
-  vehicleId: number;
-  rentalRate: number;
-  availability: boolean; // backend returns boolean
-  vehicleSpecId: number;
-  vehicleSpec?: {
-    manufacturer?: string;
-    model?: string;
-    color?: string;
-    year?: number;
-    fuelType?: string;
-    engineCapacity?: string;
-    transmission?: string;
-    seatingCapacity?: number;
-    features?: string;
-    // brand?: string; // We expect this on the backend due to the error, but it's not in the UI
-  };
-}
+import { type Vehicle, type VehicleSpec } from "../../features/api/vehiclesApi";
 
 export const AllVehicles = () => {
+  const preset_key = "vehicles";
+  const cloud_name = "dji3abnhv";
+  const cloudinaryType = "image";
+
   const {
     data: vehicles = [],
     error,
     isLoading,
     refetch,
   } = useGetAllVehiclesQuery();
+  const {
+    data: vehicleSpecs = [],
+    error: specsError,
+    isLoading: specsLoading,
+  } = useGetAllVehicleSpecsQuery();
+
   const [createVehicle, { isLoading: isCreating }] = useCreateVehicleMutation();
   const [deleteVehicle, { isLoading: isDeleting }] = useDeleteVehicleMutation();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
+  // State for the new vehicle form data (excluding the file)
   const [newVehicle, setNewVehicle] = useState({
     rentalRate: "",
-    availability: "Available", // UI text; convert before send
-    model: "",
-    manufacturer: "", // REQUIRED by backend (and we'll use this for 'brand' temporarily)
-    color: "",
-    year: "",
-    fuelType: "", // Will be dropdown
-    engineCapacity: "",
-    transmission: "", // Will be dropdown
-    seatingCapacity: "",
-    features: "",
+    availability: "Available",
+    vehicleSpecId: null as number | null, // Initialize as null or number
   });
 
-  const resetForm = () =>
+  // State specifically for the selected image file
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+
+  const resetForm = () => {
     setNewVehicle({
       rentalRate: "",
       availability: "Available",
-      model: "",
-      manufacturer: "",
-      color: "",
-      year: "",
-      fuelType: "", // Reset to default empty or a specific initial option
-      engineCapacity: "",
-      transmission: "", // Reset to default empty or a specific initial option
-      seatingCapacity: "",
-      features: "",
+      vehicleSpecId: null,
     });
+    setSelectedImage(null); // Reset the selected image file
+    setUploadProgress(0); // Reset upload progress
+  };
 
   const handleDelete = (vehicleId: number) => {
     Swal.fire({
@@ -98,56 +85,61 @@ export const AllVehicles = () => {
   };
 
   const handleAddVehicle = async () => {
-    // Basic client-side checks
     if (!newVehicle.rentalRate || isNaN(Number(newVehicle.rentalRate))) {
       toast.error("Rental rate required and must be a number.");
       return;
     }
-    if (!newVehicle.model.trim()) {
-      toast.error("Model required.");
-      return;
-    }
-    if (!newVehicle.manufacturer.trim()) {
-      toast.error("Manufacturer is required.");
-      return;
-    }
-    if (!newVehicle.year || isNaN(Number(newVehicle.year))) {
-      toast.error("Year required and must be a number.");
-      return;
-    }
-    if (!newVehicle.fuelType.trim()) {
-      toast.error("Fuel Type required.");
-      return;
-    }
-    if (!newVehicle.transmission.trim()) {
-      toast.error("Transmission required.");
+    // Validate that a vehicle spec has been selected and is a valid ID
+    if (newVehicle.vehicleSpecId === null || newVehicle.vehicleSpecId <= 0) {
+      toast.error("Please select a valid vehicle specification.");
       return;
     }
 
-    // Prepare payload
+    let imageUrl = "";
+
+    // Only attempt image upload if a file is selected
+    if (selectedImage) {
+      const cloudFormData = new FormData();
+      cloudFormData.append("file", selectedImage);
+      cloudFormData.append("upload_preset", preset_key);
+
+      try {
+        const uploadRes = await axios.post(
+          `https://api.cloudinary.com/v1_1/${cloud_name}/${cloudinaryType}/upload`,
+          cloudFormData,
+          {
+            onUploadProgress: (progressEvent) => {
+              const percent = Math.round(
+                (progressEvent.loaded * 100) / (progressEvent.total || 1)
+              );
+              setUploadProgress(percent);
+            },
+          }
+        );
+        imageUrl = uploadRes.data.secure_url;
+      } catch (uploadErr) {
+        toast.error("Image upload failed");
+        console.error("Cloudinary error:", uploadErr);
+        return;
+      }
+    }
+
     const payload = {
       rentalRate: Number(newVehicle.rentalRate),
       availability: newVehicle.availability === "Available",
-      vehicleSpec: {
-        manufacturer: newVehicle.manufacturer.trim(),
-        model: newVehicle.model.trim(),
-        color: newVehicle.color.trim(),
-        year: Number(newVehicle.year),
-        fuelType: newVehicle.fuelType.trim(),
-        engineCapacity: newVehicle.engineCapacity.trim(),
-        transmission: newVehicle.transmission.trim(),
-        seatingCapacity: Number(newVehicle.seatingCapacity) || 0,
-        features: newVehicle.features.trim(),
-        brand: newVehicle.manufacturer.trim(), // ⭐ ADDED: Sending manufacturer as brand for backend compatibility
-      },
+      imageUrl, // This will be an empty string if no image was selected/uploaded
+      vehicleSpecId: newVehicle.vehicleSpecId, // This is already a number or null
     };
+    console.log("Payload being sent:", payload);
+  console.log("Type of rentalRate:", typeof payload.rentalRate, "Value:", payload.rentalRate);
+  console.log("Type of vehicleSpecId:", typeof payload.vehicleSpecId, "Value:", payload.vehicleSpecId);
 
     try {
       await createVehicle(payload).unwrap();
       toast.success("Vehicle added successfully!");
       setIsModalOpen(false);
-      resetForm();
-      refetch(); // Refresh list
+      resetForm(); // Reset form fields and image state
+      refetch(); // Refetch vehicles to show the new one
     } catch (err: any) {
       console.error("Vehicle creation failed:", err);
       toast.error(
@@ -158,10 +150,6 @@ export const AllVehicles = () => {
     }
   };
 
-  // Define options for dropdowns
-  const fuelTypeOptions = ["Petrol", "Diesel", "Electric", "Hybrid"];
-  const transmissionOptions = ["Manual", "Automatic"];
-
   return (
     <>
       <Toaster richColors position="top-right" />
@@ -171,7 +159,7 @@ export const AllVehicles = () => {
           <button
             onClick={() => {
               setIsModalOpen(true);
-              resetForm(); // Reset form when opening modal for new entry
+              resetForm(); // Ensure form is clean when opening
             }}
             className="bg-blue-900 text-white px-4 py-2 rounded hover:bg-blue-800"
           >
@@ -202,7 +190,7 @@ export const AllVehicles = () => {
                   <th className="p-3 text-left">Rental Rate</th>
                   <th className="p-3 text-left">Availability</th>
                   <th className="p-3 text-left">Model</th>
-                  <th className="p-3 text-left">Manufacturer</th>
+                  <th className="p-3 text-left">Brand</th>
                   <th className="p-3 text-left">Color</th>
                   <th className="p-3 text-left">Year</th>
                   <th className="p-3 text-left">Fuel Type</th>
@@ -215,43 +203,29 @@ export const AllVehicles = () => {
               </thead>
               <tbody>
                 {vehicles.map((car: Vehicle) => (
-                  <tr
-                    key={car.vehicleId}
-                    className="hover:bg-blue-50 border-t border-gray-200"
-                  >
+                  <tr key={car.vehicleId} className="hover:bg-blue-50 border-t">
                     <td className="p-3">{car.vehicleId}</td>
                     <td className="p-3">KSH {car.rentalRate}</td>
                     <td className="p-3">
                       {car.availability ? "Available" : "Unavailable"}
                     </td>
                     <td className="p-3">{car.vehicleSpec?.model || "N/A"}</td>
-                    <td className="p-3">
-                      {car.vehicleSpec?.manufacturer || "N/A"}
-                    </td>
+                    <td className="p-3">{car.vehicleSpec?.brand || "N/A"}</td>
                     <td className="p-3">{car.vehicleSpec?.color || "N/A"}</td>
                     <td className="p-3">{car.vehicleSpec?.year || "N/A"}</td>
                     <td className="p-3">{car.vehicleSpec?.fuelType || "N/A"}</td>
-                    <td className="p-3">
-                      {car.vehicleSpec?.engineCapacity || "N/A"}
-                    </td>
-                    <td className="p-3">
-                      {car.vehicleSpec?.transmission || "N/A"}
-                    </td>
-                    <td className="p-3">
-                      {car.vehicleSpec?.seatingCapacity || "N/A"}
-                    </td>
-                    <td
-                      className="p-3 max-w-xs truncate"
-                      title={car.vehicleSpec?.features}
-                    >
+                    <td className="p-3">{car.vehicleSpec?.engineCapacity || "N/A"}</td>
+                    <td className="p-3">{car.vehicleSpec?.transmission || "N/A"}</td>
+                    <td className="p-3">{car.vehicleSpec?.seatingCapacity || "N/A"}</td>
+                    <td className="p-3 truncate" title={car.vehicleSpec?.features}>
                       {car.vehicleSpec?.features || "N/A"}
                     </td>
                     <td className="p-3 flex gap-2">
-                      <button className="btn btn-sm border-blue-700 text-blue-700 hover:bg-blue-700 hover:text-white">
+                      <button className="text-blue-700 hover:bg-blue-100 p-1 rounded">
                         <FiEdit />
                       </button>
                       <button
-                        className="btn btn-sm border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
+                        className="text-red-600 hover:bg-red-100 p-1 rounded"
                         onClick={() => handleDelete(car.vehicleId)}
                         disabled={isDeleting}
                       >
@@ -270,9 +244,7 @@ export const AllVehicles = () => {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-[600px] max-h-[90vh] overflow-y-auto shadow-xl">
-            <h2 className="text-xl font-bold mb-4 text-blue-900">
-              Add New Vehicle
-            </h2>
+            <h2 className="text-xl font-bold mb-4 text-blue-900">Add New Vehicle</h2>
 
             <div className="grid grid-cols-2 gap-4">
               <input
@@ -295,113 +267,45 @@ export const AllVehicles = () => {
                 <option value="Unavailable">Unavailable</option>
               </select>
 
-              <input
-                type="text"
-                placeholder="Model"
-                value={newVehicle.model}
-                onChange={(e) =>
-                  setNewVehicle({ ...newVehicle, model: e.target.value })
-                }
-                className="border p-2 rounded"
-              />
-              <input
-                type="text"
-                placeholder="Manufacturer"
-                value={newVehicle.manufacturer}
-                onChange={(e) =>
-                  setNewVehicle({
-                    ...newVehicle,
-                    manufacturer: e.target.value,
-                  })
-                }
-                className="border p-2 rounded"
-              />
+              {/* Dropdown for Vehicle Specification ID */}
+              <div className="col-span-2">
+                {specsLoading ? (
+                  <PuffLoader size={20} color="#1e3a8a" />
+                ) : specsError ? (
+                  <p className="text-red-600">Error loading specs.</p>
+                ) : (
+                  <select
+                    value={newVehicle.vehicleSpecId !== null ? newVehicle.vehicleSpecId : ""}
+                    onChange={(e) =>
+                      setNewVehicle({
+                        ...newVehicle,
+                        vehicleSpecId: e.target.value === "" ? null : Number(e.target.value),
+                      })
+                    }
+                    className="border p-2 rounded w-full"
+                  >
+                    <option value="">Select Vehicle Specification</option>
+                    {vehicleSpecs.map((spec: VehicleSpec) => (
+                      <option key={spec.vehicleSpecId} value={spec.vehicleSpecId}>
+                        {spec.brand} {spec.model} ({spec.year}) - {spec.color}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
 
+              {/* File input for image upload, now using selectedImage state */}
               <input
-                type="text"
-                placeholder="Color"
-                value={newVehicle.color}
-                onChange={(e) =>
-                  setNewVehicle({ ...newVehicle, color: e.target.value })
-                }
-                className="border p-2 rounded"
+                type="file"
+                accept="image/*"
+                onChange={(e) => setSelectedImage(e.target.files?.[0] || null)}
+                className="col-span-2 border p-2 rounded"
               />
-              <input
-                type="number"
-                placeholder="Year"
-                value={newVehicle.year}
-                onChange={(e) =>
-                  setNewVehicle({ ...newVehicle, year: e.target.value })
-                }
-                className="border p-2 rounded"
-              />
-              {/* Fuel Type Dropdown */}
-              <select
-                value={newVehicle.fuelType}
-                onChange={(e) =>
-                  setNewVehicle({ ...newVehicle, fuelType: e.target.value })
-                }
-                className="border p-2 rounded"
-              >
-                <option value="">Select Fuel Type</option>
-                {fuelTypeOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-
-              <input
-                type="text"
-                placeholder="Engine Capacity (e.g., 2.0L, 2000cc)"
-                value={newVehicle.engineCapacity}
-                onChange={(e) =>
-                  setNewVehicle({
-                    ...newVehicle,
-                    engineCapacity: e.target.value,
-                  })
-                }
-                className="border p-2 rounded"
-              />
-              {/* Transmission Dropdown */}
-              <select
-                value={newVehicle.transmission}
-                onChange={(e) =>
-                  setNewVehicle({
-                    ...newVehicle,
-                    transmission: e.target.value,
-                  })
-                }
-                className="border p-2 rounded"
-              >
-                <option value="">Select Transmission</option>
-                {transmissionOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-
-              <input
-                type="number"
-                placeholder="Seating Capacity"
-                value={newVehicle.seatingCapacity}
-                onChange={(e) =>
-                  setNewVehicle({
-                    ...newVehicle,
-                    seatingCapacity: e.target.value,
-                  })
-                }
-                className="border p-2 rounded"
-              />
-              <textarea
-                placeholder="Features (e.g., Turbocharged, AWD, GPS)"
-                value={newVehicle.features}
-                onChange={(e) =>
-                  setNewVehicle({ ...newVehicle, features: e.target.value })
-                }
-                className="border p-2 rounded col-span-2"
-              />
+              {selectedImage && uploadProgress > 0 && uploadProgress < 100 && (
+                <div className="col-span-2 text-sm text-gray-600">
+                  Uploading: {uploadProgress}%
+                </div>
+              )}
             </div>
 
             <div className="mt-6 flex justify-end gap-4">
