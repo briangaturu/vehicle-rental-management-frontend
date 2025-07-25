@@ -30,7 +30,7 @@ const UserLayout: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100">
+    <div className="flex h-screen bg-white">
       {/* Sidebar */}
       <aside className="w-64 min-h-screen bg-white shadow-md">
         <Sidebar onSelect={setActiveView} />

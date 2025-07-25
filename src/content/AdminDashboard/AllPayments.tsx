@@ -144,7 +144,7 @@ export const AllPayments = () => {
                   <td className="p-3">{p.paymentId}</td>
                   <td className="p-3 text-orange-500">{p.bookingId}</td>
                   <td className="p-3 text-green-600 font-semibold">
-                    KSH {p.amount}
+                    $ {p.amount}
                   </td>
                   <td className="p-3">
                     <span

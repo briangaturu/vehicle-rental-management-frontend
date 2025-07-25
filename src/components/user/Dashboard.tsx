@@ -1,43 +1,71 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { FaShoppingCart, FaDollarSign, FaTicketAlt } from "react-icons/fa";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../app/store";
+
+import { useGetBookingsByUserIdQuery } from "../../features/api/bookingsApi";
+import { useGetPaymentsByUserIdQuery } from "../../features/api/PaymentsApi";
+import { useGetTicketsByUserIdQuery } from "../../features/api/supportTicketsApi";
 
 const UserDashboard: React.FC = () => {
-  // Example data - replace with real data fetched from backend or Redux store
-  const totalBookings = 12;
-  const totalPayments = 4;
-  const totalTickets = 2;
+  const userId = useSelector((state: RootState) => state.auth.user?.id);
+
+  // Fetch bookings
+  const {
+    data: bookings,
+    isLoading: loadingBookings,
+  } = useGetBookingsByUserIdQuery(userId!, { skip: !userId });
+
+  // Fetch payments
+  const {
+    data: payments,
+    isLoading: loadingPayments,
+  } = useGetPaymentsByUserIdQuery(userId!, { skip: !userId });
+
+  // Fetch tickets
+  const {
+    data: tickets,
+    isLoading: loadingTickets,
+  } = useGetTicketsByUserIdQuery(userId!, { skip: !userId });
+
+  const totalBookings = Array.isArray(bookings) ? bookings.length : 0;
+  const totalPayments = Array.isArray(payments) ? payments.length : 0;
+  const totalTickets = Array.isArray(tickets) ? tickets.length : 0;
+
+  const isLoading = loadingBookings || loadingPayments || loadingTickets;
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-white">
       <h1 className="text-3xl font-bold text-gray-800 mb-8">
         User Dashboard
       </h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Bookings Card */}
-        <Card
-          title="My Bookings"
-          value={totalBookings}
-          icon={<FaShoppingCart className="text-white text-3xl" />}
-          bgColor="bg-blue-500"
-        />
+      {isLoading ? (
+        <p className="text-gray-600">Loading dashboard data...</p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card
+            title="My Bookings"
+            value={totalBookings}
+            icon={<FaShoppingCart className="text-white text-3xl" />}
+            bgColor="bg-[#0D1C56]"
+          />
 
-        {/* Payments Card */}
-        <Card
-          title="My Payments"
-          value={totalPayments}
-          icon={<FaDollarSign className="text-white text-3xl" />}
-          bgColor="bg-green-500"
-        />
+          <Card
+            title="My Payments"
+            value={totalPayments}
+            icon={<FaDollarSign className="text-white text-3xl" />}
+            bgColor="bg-green-500"
+          />
 
-        {/* Tickets Card */}
-        <Card
-          title="My Tickets"
-          value={totalTickets}
-          icon={<FaTicketAlt className="text-white text-3xl" />}
-          bgColor="bg-red-500"
-        />
-      </div>
+          <Card
+            title="My Tickets"
+            value={totalTickets}
+            icon={<FaTicketAlt className="text-white text-3xl" />}
+            bgColor="bg-red-500"
+          />
+        </div>
+      )}
     </div>
   );
 };

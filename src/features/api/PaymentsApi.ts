@@ -16,7 +16,7 @@ export interface CreatePaymentPayload {
   bookingId: number;
   amount: string;
   paymentStatus?: string;
- paymentMethod: string | null;
+  paymentMethod: string | null;
   transactionId: string | null;
 }
 
@@ -48,7 +48,7 @@ export const paymentsApi = createApi({
       providesTags: (res, err, id) => [{ type: "payment", id }],
     }),
     getPaymentsByUserId: builder.query<Payment[], number>({
-      query: (userId) => `payments/user?userId=${userId}`,
+      query: (userId) => `payments/user/${userId}`, // ✅ corrected path
       providesTags: ["payments"],
     }),
     createPayment: builder.mutation<Payment, CreatePaymentPayload>({
@@ -74,12 +74,21 @@ export const paymentsApi = createApi({
       }),
       invalidatesTags: ["payments"],
     }),
+    createPaymentSession: builder.mutation({
+      query: (paymentPayload) => ({
+        url: "payments/checkout-session",
+        method: "POST",
+        body: paymentPayload,
+      }),
+      invalidatesTags: ["payment"],
+    }),
   }),
 });
 
 export const {
   useGetAllPaymentsQuery,
   useGetPaymentByIdQuery,
+  useGetPaymentsByUserIdQuery, // ✅ now exported
   useCreatePaymentMutation,
   useUpdatePaymentMutation,
   useDeletePaymentMutation,

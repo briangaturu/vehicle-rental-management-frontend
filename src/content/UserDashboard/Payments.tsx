@@ -1,82 +1,39 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../app/store";
-
-interface Payment {
-  id: number;
-  bookingId: number;
-  amount: string;
-  paymentStatus: string;
-  paymentMethod: string | null;
-  transactionId: string | null;
-}
+import { useGetPaymentsByUserIdQuery } from "../../features/api/PaymentsApi";
 
 const Payments: React.FC = () => {
-  const [payments, setPayments] = useState<Payment[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const userFromRedux = useSelector((state: RootState) => state.auth.user);
+  const storedUser = sessionStorage.getItem("user");
+  const user = userFromRedux || (storedUser ? JSON.parse(storedUser) : null);
+  const userId = user?.id;
 
-  
-  const userFromRedux = useSelector(
-    (state: RootState) => state.auth.user
-  );
+  const {
+    data: payments = [],
+    isLoading,
+    isError,
+    error,
+  } = useGetPaymentsByUserIdQuery(userId, {
+    skip: !userId,
+  });
 
-  useEffect(() => {
-    const fetchPayments = async () => {
-      try {
-        let user = userFromRedux;
+  if (!userId) {
+    return <p className="text-red-500">User not logged in.</p>;
+  }
 
-        
-        if (!user) {
-          const storedUser = sessionStorage.getItem("user");
-          if (storedUser) {
-            user = JSON.parse(storedUser);
-          }
-        }
-
-        if (!user || !user.id) {
-          setError("User not logged in.");
-          setLoading(false);
-          return;
-        }
-
-        const userId = user.id;
-        const response = await axios.get(`/api/payments/user/${userId}`);
-        console.log("Payments API response:", response.data);
-
-    
-        const paymentList = Array.isArray(response.data)
-          ? response.data
-          : response.data?.payments || [];
-
-        setPayments(paymentList);
-      } catch (err: any) {
-        console.error(err);
-        setError(err.response?.data?.error || "Failed to fetch payments");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPayments();
-  }, [userFromRedux]);
-
-  if (loading) {
+  if (isLoading) {
     return <p className="text-gray-600">Loading payments...</p>;
   }
 
-  if (error) {
-    return <p className="text-red-500">{error}</p>;
+  if (isError) {
+    const errMsg =
+      (error as any)?.data?.error || "Failed to fetch payments";
+    return <p className="text-red-500">{errMsg}</p>;
   }
 
-  
   if (!Array.isArray(payments)) {
-    return (
-      <p className="text-red-500">
-        Payments data format is invalid.
-      </p>
-    );
+    return <p className="text-red-500">Payments data format is invalid.</p>;
   }
 
   return (
@@ -99,8 +56,8 @@ const Payments: React.FC = () => {
           </thead>
           <tbody>
             {payments.map((payment) => (
-              <tr key={payment.id} className="border-t">
-                <td>{payment.id}</td>
+              <tr key={payment.paymentId} className="border-t">
+                <td>{payment.paymentId}</td>
                 <td>{payment.bookingId}</td>
                 <td>${payment.amount}</td>
                 <td

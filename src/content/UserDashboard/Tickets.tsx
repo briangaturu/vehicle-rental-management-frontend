@@ -43,7 +43,7 @@ const UserTicketsPage: React.FC = () => {
 
       <button
         onClick={() => setIsModalOpen(true)}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mb-6"
+        className="bg-[#0D1C49] text-white px-4 py-2 rounded hover:bg-blue-700 mb-6"
       >
         Create New Ticket
       </button>
@@ -99,28 +99,21 @@ const UserTicketsPage: React.FC = () => {
       )}
 
       {!isLoading && ticketList.length > 0 && (
-        <table className="w-full border border-gray-300 text-sm">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-2 border">Subject</th>
-              <th className="p-2 border">Description</th>
-              <th className="p-2 border">Ticket ID</th>
-              <th className="p-2 border">Created</th>
-            </tr>
-          </thead>
-          <tbody>
-            {ticketList.map((ticket) => (
-              <tr key={ticket.ticketId} className="hover:bg-gray-50">
-                <td className="p-2 border">{ticket.subject}</td>
-                <td className="p-2 border">{ticket.description}</td>
-                <td className="p-2 border">{ticket.ticketId}</td>
-                <td className="p-2 border">
-                  {ticket.createdAt ? new Date(ticket.createdAt).toLocaleString() : 'N/A'}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {ticketList.map((ticket) => (
+            <div
+              key={ticket.ticketId}
+              className="border border-gray-200 rounded-lg shadow-sm p-4 bg-white hover:shadow-md transition-shadow"
+            >
+              <h3 className="text-lg font-semibold text-blue-700 mb-2">{ticket.subject}</h3>
+              <p className="text-gray-700 mb-2">{ticket.description}</p>
+              <p className="text-sm text-gray-500">Ticket ID: {ticket.ticketId}</p>
+              <p className="text-sm text-gray-500">
+                Created: {ticket.createdAt ? new Date(ticket.createdAt).toLocaleString() : 'N/A'}
+              </p>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

@@ -13,6 +13,7 @@ import { useCreateBookingMutation } from '../../features/api/bookingsApi';
 import { useGetAllLocationsQuery } from '../../features/api/locationApi';
 import { useSelector } from 'react-redux';
 import { type RootState } from '../../app/store';
+import { StripeCheckoutButton } from './payments';
 
 interface CarCardProps {
   vehicles: Vehicle[];
@@ -20,9 +21,10 @@ interface CarCardProps {
 
 const CarCard: React.FC<CarCardProps> = ({ vehicles }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false); // ✅ Payment Modal State
+  const [currentBookingAmount, setCurrentBookingAmount] = useState<number>(0); // ✅ Amount to pass to payment
 
-  // Modal form states
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [bookingDate, setBookingDate] = useState('');
   const [returnDate, setReturnDate] = useState('');
   const [totalAmount, setTotalAmount] = useState(0);
@@ -31,6 +33,7 @@ const CarCard: React.FC<CarCardProps> = ({ vehicles }) => {
   const [successMessage, setSuccessMessage] = useState('');
 
   const userId = useSelector((state: RootState) => state.auth.user?.id);
+  const [currentBookingId, setCurrentBookingId] = useState<number | null>(null);
 
   const [
     createBooking,
@@ -48,11 +51,9 @@ const CarCard: React.FC<CarCardProps> = ({ vehicles }) => {
     error: locationsError,
   } = useGetAllLocationsQuery();
 
-  // Handle closing the modal - memoized for useEffect dependency
   const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
-    setSelectedVehicle(null); // Clear selected vehicle
-    // Reset form fields when closing
+    setSelectedVehicle(null);
     setBookingDate('');
     setReturnDate('');
     setTotalAmount(0);
@@ -61,11 +62,9 @@ const CarCard: React.FC<CarCardProps> = ({ vehicles }) => {
     setSuccessMessage('');
   }, []);
 
-  // Handle opening the modal
   const handleBookClick = (vehicle: Vehicle) => {
     setSelectedVehicle(vehicle);
     setIsModalOpen(true);
-    // Reset form fields when opening the modal for a new booking
     setBookingDate('');
     setReturnDate('');
     setTotalAmount(0);
@@ -74,103 +73,115 @@ const CarCard: React.FC<CarCardProps> = ({ vehicles }) => {
     setSuccessMessage('');
   };
 
-  // Effect to calculate total amount when dates or selected vehicle change
   useEffect(() => {
-    if (bookingDate && returnDate && selectedVehicle?.rentalRate) { // Ensure rentalRate is available
+    if (bookingDate && returnDate && selectedVehicle?.rentalRate) {
       const start = new Date(bookingDate);
       const end = new Date(returnDate);
-
-      // Basic date validation: return date must be after booking date
-      // Also ensure dates are valid Date objects
       if (isNaN(start.getTime()) || isNaN(end.getTime())) {
         setErrorMessage('Invalid date selection.');
         setTotalAmount(0);
         return;
       }
-
       if (start >= end) {
         setErrorMessage('Return date must be after booking date.');
         setTotalAmount(0);
         return;
       }
-
       const diffTime = Math.abs(end.getTime() - start.getTime());
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // Calculate number of days
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       const calculatedAmount = diffDays * selectedVehicle.rentalRate;
       setTotalAmount(calculatedAmount);
-      setErrorMessage(''); // Clear error if dates are now valid
+      setErrorMessage('');
     } else {
       setTotalAmount(0);
-      // setErrorMessage(''); // Consider clearing or setting a specific message if dates are empty
     }
   }, [bookingDate, returnDate, selectedVehicle]);
 
-  // Handle success/error states from RTK Query booking mutation
   useEffect(() => {
     if (isBookingSuccess) {
       setSuccessMessage('Booking created successfully! Redirecting...');
+      setCurrentBookingAmount(totalAmount); // ✅ Save amount for payment modal
+      setCurrentBookingId(currentBookingId); // ✅ Correct assignment
+
       setTimeout(() => {
-        handleCloseModal(); // Close modal on successful booking
+        setIsModalOpen(false); // Close booking modal
+        setIsPaymentModalOpen(true); // ✅ Open payment modal
         setSuccessMessage('');
-      }, 2000); // Give user time to see success message
+      }, 1500);
     }
+
     if (isBookingError) {
-      // Safely access error message
-      const apiError = (bookingError as any)?.data?.error || (bookingError as any)?.error || 'Failed to create booking.';
+      const apiError =
+        (bookingError as any)?.data?.error ||
+        (bookingError as any)?.error ||
+        'Failed to create booking.';
       setErrorMessage(apiError);
     }
-  }, [isBookingSuccess, isBookingError, bookingError, handleCloseModal]); // Added handleCloseModal to dependencies
+  }, [isBookingSuccess, isBookingError, bookingError, handleCloseModal, totalAmount]);
 
-
-  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMessage(''); // Clear previous errors
-    setSuccessMessage(''); // Clear previous success messages
+  e.preventDefault();
+  setErrorMessage('');
+  setSuccessMessage('');
 
-    if (!selectedVehicle) {
-      setErrorMessage('No vehicle selected for booking.');
-      return;
-    }
-    if (!bookingDate || !returnDate || !selectedLocationId) {
-      setErrorMessage('Please fill in all required fields.');
-      return;
-    }
-    if (totalAmount <= 0) {
-      setErrorMessage('Please select valid dates to calculate total amount.');
-      return;
-    }
-    // Ensure userId is a valid number
-    const parsedUserId = userId ? parseInt(userId) : NaN;
-    if (isNaN(parsedUserId) || parsedUserId <= 0) {
-      setErrorMessage('User authentication error. Please log in again.');
-      return;
-    }
-    const parsedLocationId = parseInt(selectedLocationId);
-    if (isNaN(parsedLocationId) || parsedLocationId <= 0) {
-      setErrorMessage('Invalid pickup location selected.');
-      return;
-    }
+  if (!selectedVehicle) {
+    setErrorMessage('No vehicle selected for booking.');
+    return;
+  }
 
-    const bookingPayload = {
-      bookingDate,
-      returnDate,
-      totalAmount,
-      vehicleId: selectedVehicle.vehicleId,
-      locationId: parsedLocationId,
-      userId: parsedUserId,
-    };
+  if (!bookingDate || !returnDate || !selectedLocationId) {
+    setErrorMessage('Please fill in all required fields.');
+    return;
+  }
 
-    try {
-      await createBooking(bookingPayload).unwrap();
-      // Success message and modal closing handled by useEffect
-    } catch (err) {
-      console.error('Failed to create booking:', err);
-      // Error message handled by useEffect
-    }
+  if (totalAmount <= 0) {
+    setErrorMessage('Please select valid dates to calculate total amount.');
+    return;
+  }
+
+  const parsedUserId = userId ? parseInt(userId) : NaN;
+  const parsedLocationId = parseInt(selectedLocationId);
+
+  if (isNaN(parsedUserId) || parsedUserId <= 0) {
+    setErrorMessage('User authentication error. Please log in again.');
+    return;
+  }
+
+  if (isNaN(parsedLocationId) || parsedLocationId <= 0) {
+    setErrorMessage('Invalid pickup location selected.');
+    return;
+  }
+
+  const bookingPayload = {
+    bookingDate,
+    returnDate,
+    totalAmount,
+    vehicleId: selectedVehicle.vehicleId,
+    locationId: parsedLocationId,
+    userId: parsedUserId,
   };
 
-  // Render loading/empty state for car cards
+  try {
+    const booking = await createBooking(bookingPayload).unwrap(); // ✅ Wait for booking result
+    console.log("Raw booking object:", booking);
+    setCurrentBookingAmount(totalAmount);
+    setCurrentBookingId(booking.bookingId); 
+    console.log(booking.bookingId)
+    setSuccessMessage('Booking created successfully! Redirecting...');
+
+    setTimeout(() => {
+      setIsModalOpen(false);
+      setIsPaymentModalOpen(true);
+      setSuccessMessage('');
+    }, 1500);
+  } catch (err: any) {
+    const errorText =
+      err?.data?.error || err?.message || 'Failed to create booking.';
+    setErrorMessage(errorText);
+    console.error('Booking failed:', err);
+  }
+};
+
   if (!vehicles || vehicles.length === 0) {
     return (
       <div className="text-center py-10 text-gray-600">
@@ -178,6 +189,8 @@ const CarCard: React.FC<CarCardProps> = ({ vehicles }) => {
       </div>
     );
   }
+  
+
 
   return (
     <>
@@ -187,25 +200,17 @@ const CarCard: React.FC<CarCardProps> = ({ vehicles }) => {
             key={vehicle.vehicleId}
             className="bg-gray-50 rounded-lg shadow-md overflow-hidden flex flex-col hover:shadow-xl transition-shadow duration-300"
           >
-            {/* Image Area with View Button */}
             <div className="relative w-full h-48">
               <img
-                // ✅ MODIFIED: Use vehicle.imageUrl if available, otherwise fallback to placeholder
                 src={
                   vehicle.imageUrl ||
-                  `https://via.placeholder.com/400x250?text=${
-                    vehicle.vehicleSpec?.brand || ''
-                  }+${vehicle.vehicleSpec?.model || 'Car'}`
+                  `https://via.placeholder.com/400x250?text=${vehicle.vehicleSpec?.brand || ''}+${vehicle.vehicleSpec?.model || 'Car'}`
                 }
-                alt={`${vehicle.vehicleSpec?.brand || ''} ${
-                  vehicle.vehicleSpec?.model || 'Vehicle'
-                }`}
+                alt={`${vehicle.vehicleSpec?.brand || ''} ${vehicle.vehicleSpec?.model || 'Vehicle'}`}
                 className="w-full h-full object-cover"
               />
-              {/* View Button Overlay */}
               <button
-                className="absolute bottom-3 right-3 bg-white text-[#001258] px-3 py-1 rounded-full text-xs font-semibold
-                                hover:bg-gray-200 transition-colors shadow-md"
+                className="absolute bottom-3 right-3 bg-white text-[#001258] px-3 py-1 rounded-full text-xs font-semibold hover:bg-gray-200 transition-colors shadow-md"
                 onClick={() => console.log('View vehicle:', vehicle.vehicleId)}
               >
                 View
@@ -267,7 +272,7 @@ const CarCard: React.FC<CarCardProps> = ({ vehicles }) => {
         ))}
       </div>
 
-      {/* Booking Modal JSX (conditionally rendered) */}
+      {/* Booking Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 relative">
@@ -328,7 +333,7 @@ const CarCard: React.FC<CarCardProps> = ({ vehicles }) => {
                 {isLocationsLoading ? (
                   <p className="text-gray-500 mt-1">Loading locations...</p>
                 ) : isLocationsError ? (
-                  <p className="text-red-500 mt-1">Error loading locations: {(locationsError as any)?.message || 'Unknown error'}</p>
+                  <p className="text-red-500 mt-1">Error loading locations</p>
                 ) : (
                   <select
                     id="location"
@@ -359,6 +364,26 @@ const CarCard: React.FC<CarCardProps> = ({ vehicles }) => {
                 {isBookingLoading ? 'Booking...' : 'Confirm Booking'}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ Payment Modal */}
+      {isPaymentModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white p-6 rounded-lg w-full max-w-md relative shadow-xl">
+            <button
+              onClick={() => setIsPaymentModalOpen(false)}
+              className="absolute top-3 right-3 text-gray-600 hover:text-black text-2xl font-bold"
+            >
+              &times;
+            </button>
+            <h2 className="text-xl font-bold text-center text-gray-800 mb-4">Complete Your Payment</h2>
+            <p className="text-gray-700 mb-6 text-center">
+              You're booking a vehicle for <span className="text-red-600 font-semibold">Ksh {currentBookingAmount.toFixed(2)}</span>
+            </p>
+            <StripeCheckoutButton amount={currentBookingAmount} bookingId={currentBookingId} userId={userId} />
+           
           </div>
         </div>
       )}

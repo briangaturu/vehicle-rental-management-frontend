@@ -75,6 +75,14 @@ export const bookingsApi = createApi({
       invalidatesTags: ["bookings", "booking"],
     }),
 
+    getMonthlyBookingTrends: builder.query<
+  { month: string; count: number }[],
+  void
+>({
+  query: () => 'booking/stats/monthly',
+}),
+
+
     deleteBooking: builder.mutation<{ message: string }, number>({
       query: (bookingId) => ({
         url: `booking/${bookingId}`, // Changed from 'bookings' to 'booking' for consistency
@@ -92,6 +100,7 @@ export const {
   useGetBookingsByUserIdQuery,
   useUpdateBookingMutation,
   useDeleteBookingMutation,
+  useGetMonthlyBookingTrendsQuery,
 } = bookingsApi;
 
 export default bookingsApi;

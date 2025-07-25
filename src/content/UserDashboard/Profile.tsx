@@ -8,7 +8,8 @@ import type { RootState } from '../../app/store';
 import Swal from 'sweetalert2';
 import {
   useUpdateUserProfileMutation,
-  useUpdateUserProfileImageMutation
+  useUpdateUserProfileImageMutation,
+  useGetUserByIdQuery
 } from '../../features/api/userApi';
 
 interface FormValues {
@@ -22,6 +23,13 @@ interface FormValues {
 const Profile = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, role } = useSelector((state: RootState) => state.auth);
+  const userId = useSelector((state: RootState) => state.auth.user?.id);
+
+  const {
+    data: userProfile,
+  } = useGetUserByIdQuery(parseInt(userId as string), {
+    skip: !userId || isNaN(parseInt(userId as string)),
+  });
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<FormValues>({
     defaultValues: {
@@ -69,7 +77,7 @@ const Profile = () => {
         return;
       }
 
-      await updateProfile({ userId, ...data, password:user.password }).unwrap();
+      await updateProfile({ userId, ...data, password: user.password }).unwrap();
       Swal.fire('Success!', 'Profile updated successfully!', 'success');
       handleModalToggle();
     } catch (error: any) {
@@ -109,20 +117,20 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen text-gray-800 py-10 px-5 bg-gradient-to-br from-white to-red-50">
+    <div className="min-h-screen text-gray-800 py-10 px-5 bg-white from-white to-gray-100">
       <div className="max-w-4xl mx-auto rounded-lg shadow-xl overflow-hidden bg-white border border-gray-200">
 
         {/* Header */}
-        <div className="bg-red-700 text-white p-6 flex flex-col md:flex-row items-center justify-between shadow-md">
+        <div className="bg-[#0D1C49] text-white p-6 flex flex-col md:flex-row items-center justify-between shadow-md">
           <div className="relative flex items-center gap-4 mb-4 md:mb-0">
             <img
               src={user?.profileUrl || profilePicture}
               alt="Profile"
-              className="w-28 h-28 rounded-full border-4 border-orange-400 object-cover shadow-lg"
+              className="w-28 h-28 rounded-full border-4 border-white object-cover shadow-lg"
             />
             <label
               htmlFor="profile-picture-upload"
-              className="absolute bottom-0 right-0 md:right-auto md:left-20 bg-orange-500 p-2 rounded-full cursor-pointer hover:bg-orange-600 transition-colors duration-200 shadow-md"
+              className="absolute bottom-0 right-0 md:right-auto md:left-20 bg-[#EF4444] p-2 rounded-full cursor-pointer hover:opacity-90 transition duration-200 shadow-md"
               title="Change Profile Picture"
             >
               <FaCamera className="text-white text-lg" />
@@ -139,16 +147,16 @@ const Profile = () => {
               <h2 className="text-4xl font-extrabold mb-1">
                 {user?.firstname || 'User'} {user?.lastname || 'Profile'}
               </h2>
-              <p className="text-red-200 text-lg">{user?.email}</p>
+              <p className="text-gray-300 text-lg">{user?.email}</p>
               {user?.role && (
-                <span className="badge badge-lg bg-red-200 text-red-800 font-semibold mt-2">
+                <span className="text-sm bg-white text-[#0F172A] font-semibold px-3 py-1 rounded mt-2 inline-block">
                   {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                 </span>
               )}
             </div>
           </div>
           <button
-            className="btn bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition-colors duration-200 flex items-center gap-2"
+            className="btn bg-red-500 hover:bg-blue-900 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-200 flex items-center gap-2"
             onClick={handleModalToggle}
             disabled={isUpdatingProfile || isUploadingImage}
           >
@@ -156,26 +164,26 @@ const Profile = () => {
           </button>
         </div>
 
-        {/* Profile Info */}
+        {/* Info */}
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="bg-gray-50 rounded-lg p-6 border border-gray-200 shadow-sm">
-            <h3 className="text-2xl font-bold mb-4 text-red-700 border-b pb-2 border-red-200">Personal Information</h3>
+            <h3 className="text-2xl font-bold mb-4 text-[#0D1C49] border-b pb-2 border-gray-300">Personal Information</h3>
             <div className="space-y-3 text-gray-700">
-              <p><span className="font-semibold text-red-600">First Name:</span> {user?.firstname || 'N/A'}</p>
-              <p><span className="font-semibold text-red-600">Last Name:</span> {user?.lastname || 'N/A'}</p>
-              <p><span className="font-semibold text-red-600">Email:</span> {user?.email || 'N/A'}</p>
-              <p><span className="font-semibold text-red-600">Contact:</span> {user?.contact || 'N/A'}</p>
-              <p><span className="font-semibold text-red-600">Address:</span> {user?.address || 'N/A'}</p>
+              <p><span className="font-semibold text-[#EF4444]">First Name:</span> {userProfile?.firstname || 'N/A'}</p>
+              <p><span className="font-semibold text-[#EF4444]">Last Name:</span> {userProfile?.lastname || 'N/A'}</p>
+              <p><span className="font-semibold text-[#EF4444]">Email:</span> {userProfile?.email || 'N/A'}</p>
+              <p><span className="font-semibold text-[#EF4444]">Contact:</span> {userProfile?.contact || 'N/A'}</p>
+              <p><span className="font-semibold text-[#EF4444]">Address:</span> {userProfile?.address || 'N/A'}</p>
             </div>
           </div>
 
           <div className="bg-gray-50 rounded-lg p-6 border border-gray-200 shadow-sm">
-            <h3 className="text-2xl font-bold mb-4 text-red-700 border-b pb-2 border-red-200">Security Settings</h3>
+            <h3 className="text-2xl font-bold mb-4 text-[#0D1C49] border-b pb-2 border-gray-300">Security Settings</h3>
             <p className="mb-4 text-gray-700">
-              <span className="font-semibold text-red-600">Password:</span> ********
+              <span className="font-semibold text-[#EF4444]">Password:</span> ********
             </p>
             <button
-              className="btn bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-colors duration-200"
+              className="btn bg-[#EF4444] hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-colors duration-200"
               disabled
             >
               Change Password
@@ -184,7 +192,7 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* Edit Modal */}
+      {/* Modal */}
       {isModalOpen && (
         <div className="modal modal-open flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="modal-box bg-white p-8 rounded-lg shadow-xl relative max-w-lg w-full text-gray-800">
@@ -196,7 +204,7 @@ const Profile = () => {
               ✕
             </button>
             <div className="flex justify-center items-center mb-6">
-              <h2 className="text-3xl font-bold text-red-700">Edit Your Profile</h2>
+              <h2 className="text-3xl font-bold text-[#0F172A]">Edit Your Profile</h2>
             </div>
             <form onSubmit={handleSubmit(onSubmit)}>
               <div className="mb-4">
@@ -247,13 +255,13 @@ const Profile = () => {
                 <button
                   type="button"
                   onClick={handleModalToggle}
-                  className="btn bg-red-500 hover:bg-red-600 text-white font-bold shadow-md transition-colors duration-200 flex items-center gap-2"
+                  className="btn bg-gray-400 hover:bg-gray-500 text-white font-bold shadow-md flex items-center gap-2"
                 >
                   <FaTimes /> Cancel
                 </button>
                 <button
                   type="submit"
-                  className="btn bg-red-600 hover:bg-red-700 text-white font-bold shadow-md transition-colors duration-200 flex items-center gap-2"
+                  className="btn bg-[#EF4444] hover:bg-red-700 text-white font-bold shadow-md flex items-center gap-2"
                   disabled={isUpdatingProfile}
                 >
                   <SaveIcon className="w-4 h-4" /> {isUpdatingProfile ? 'Saving...' : 'Save Changes'}

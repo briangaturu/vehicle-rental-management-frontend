@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   LineChart,
   Line,
@@ -7,46 +6,58 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer
+  ResponsiveContainer,
+  Legend,
 } from 'recharts';
-
-const data = [
-  { month: 'Jan', bookings: 5 },
-  { month: 'Feb', bookings: 18 },
-  { month: 'Mar', bookings: 15 },
-  { month: 'Apr', bookings: 22 },
-  { month: 'May', bookings: 25 },
-  { month: 'Jun', bookings: 30 },
-  { month: 'Jul', bookings: 42 },
-  { month: 'Aug', bookings: 38 },
-  { month: 'Sep', bookings: 35 },
-  { month: 'Oct', bookings: 40 },
-  { month: 'Nov', bookings: 32 },
-  { month: 'Dec', bookings: 45 },
-];
+import { useGetAllBookingsQuery } from '../../features/api/bookingsApi';
 
 const BookingsChart: React.FC = () => {
-  return (
-    <div className="bg-white p-4 rounded shadow mt-6">
-      <h3 className="text-lg font-bold mb-4">Bookings Over Time</h3>
+  const { data: bookings = [], isLoading, isError } = useGetAllBookingsQuery();
 
-      <div className="w-full h-64">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data}>
-            <CartesianGrid stroke="#E2E8F0" strokeDasharray="3 3" />
-            <XAxis dataKey="month" stroke="#475569" />
-            <YAxis stroke="#475569" />
+  const monthlyData = useMemo(() => {
+    const grouped: { [month: string]: number } = {};
+
+    bookings.forEach(b => {
+      if (!b.createdAt) return;
+      const date = new Date(b.createdAt);
+      const month = date.toLocaleString('default', { month: 'short', year: 'numeric' });
+      grouped[month] = (grouped[month] || 0) + 1;
+    });
+
+    return Object.entries(grouped)
+      .map(([month, count]) => ({ month, count }))
+      .sort((a, b) => {
+        const getDateValue = (m: string) => new Date('1 ' + m).getTime(); // "1 Jan 2025"
+        return getDateValue(a.month) - getDateValue(b.month);
+      });
+  }, [bookings]);
+
+  return (
+    <div className="bg-white border border-rose-200 p-4 rounded-xl shadow flex flex-col">
+      <h2 className="text-xl font-semibold text-rose-700 mb-4">Monthly Booking Trends</h2>
+
+      {isLoading ? (
+        <p className="text-gray-500">Loading chart...</p>
+      ) : isError ? (
+        <p className="text-red-500">Failed to load booking data.</p>
+      ) : (
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={monthlyData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="month" />
+            <YAxis allowDecimals={false} />
             <Tooltip />
+            <Legend />
             <Line
               type="monotone"
-              dataKey="bookings"
-              stroke="#3B82F6"
-              strokeWidth={3}
-              dot={{ r: 4, strokeWidth: 2, fill: '#3B82F6' }}
+              dataKey="count"
+              stroke="#f43f5e"
+              strokeWidth={2}
+              dot={{ r: 4, strokeWidth: 2, fill: '#f43f5e' }}
             />
           </LineChart>
         </ResponsiveContainer>
-      </div>
+      )}
     </div>
   );
 };

@@ -90,7 +90,7 @@ export const userApi = createApi({
 
     // Get single user by ID
     getUserById: builder.query<User, number>({
-      query: (userId) => `users/${userId}`,
+      query: (userId:number) => `users/${userId}`,
       providesTags: ["user"],
     }),
 
@@ -142,7 +142,7 @@ export const userApi = createApi({
       invalidatesTags: ['bookings'],
     }),
 
-    // Get booking by ID
+    
     getBookingById: builder.query<BookingDetails, number>({
       query: (bookingId) => `bookings/${bookingId}`,
       providesTags: (result, error, id) => [{ type: 'bookings', id }],
@@ -150,9 +150,7 @@ export const userApi = createApi({
   }),
 });
 
-// ======================
-// Hooks
-// ======================
+
 
 export const {
   useLoginUserMutation,

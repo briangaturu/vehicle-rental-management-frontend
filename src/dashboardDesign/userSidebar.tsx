@@ -1,6 +1,6 @@
 import { SquareUserRound, LogOut as LogOutIcon } from "lucide-react";
 import { FaDollarSign, FaCar } from "react-icons/fa";
-import { FaShip, FaHeadset, FaTicketAlt } from "react-icons/fa";
+import { FaShip, FaHeadset, FaTicketAlt, FaTachometerAlt } from "react-icons/fa"; // 👈 Add Tachometer icon for Dashboard
 import { useDispatch } from "react-redux";
 import { clearCredentials } from "../features/auth/authSlice";
 
@@ -13,43 +13,49 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSelect }) => {
 
   const handleLogOut = () => {
     dispatch(clearCredentials());
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('user');
-    window.location.href = '/login';
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
+    window.location.href = "/login";
   };
 
   return (
-    <aside className="w-64 bg-[#0F172A] text-white p-6 flex flex-col min-h-screen">
+    <aside className="w-64 bg-[#0D1C49] text-white p-6 flex flex-col min-h-screen">
       <h1 className="text-2xl font-bold mb-10 flex items-center">
         <FaCar className="mr-2 text-red-500" /> RideXpress
       </h1>
 
       <nav className="space-y-4 flex-1">
+        {/* 👇 New Dashboard Item */}
+        <NavItem
+          icon={<FaTachometerAlt className="text-red-500" />}
+          label="Dashboard"
+          onClick={() => onSelect("Dashboard")}
+        />
         <NavItem
           icon={<SquareUserRound className="text-red-500" />}
           label="Profile"
-          onClick={() => onSelect('Profile')}
+          onClick={() => onSelect("Profile")}
         />
         <NavItem
           icon={<FaShip className="text-red-500" />}
           label="My Bookings"
-          onClick={() => onSelect('Bookings')}
+          onClick={() => onSelect("Bookings")}
         />
         <NavItem
           icon={<FaDollarSign className="text-red-500" />}
           label="My Payments"
-          onClick={() => onSelect('Payments')}
+          onClick={() => onSelect("Payments")}
         />
         <NavItem
           icon={<FaTicketAlt className="text-red-500" />}
           label="My Tickets"
-          onClick={() => onSelect('Tickets')}
+          onClick={() => onSelect("Tickets")}
         />
-        {/* Uncomment if you build Support */}
+        {/* Optional Support Nav */}
         {/* <NavItem
           icon={<FaHeadset className="text-red-500" />}
           label="Support"
-          onClick={() => onSelect('Support')}
+          onClick={() => onSelect("Support")}
         /> */}
       </nav>
 
@@ -81,7 +87,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSelect }) => {
             </svg>
           }
           label="Home"
-          onClick={() => window.location.href = '/'}
+          onClick={() => (window.location.href = "/")}
         />
       </div>
     </aside>
