@@ -9,13 +9,18 @@ import { FaTimes } from "react-icons/fa";
 import { SaveIcon } from "lucide-react";
 
 interface UserDetail {
-  userId: number;
-  firstName: string;
-  lastName: string;
-  profileUrl: string;
+   userId: number;
+  firstname: string;
+  lastname: string;
   email: string;
-  role: string;
+  password: string;
+  contact: string;
+  address: string;
   createdAt: string;
+  profileUrl?: string;
+  role?: 'user' | 'admin' | 'disabled';
+  bookings?: any[]; 
+  supportTickets?: any[]; 
 }
 
 const getUserTypeBadge = (userType: string) => {
@@ -118,11 +123,11 @@ export const AllUsers = () => {
                     <div className="flex items-center gap-3">
                       <img
                         src={user.profileUrl}
-                        alt={user.firstName}
+                        alt={user.firstname}
                         className="w-10 h-10 rounded-full object-cover"
                       />
                       <span className="font-semibold text-orange-500">
-                        {user.firstName} {user.lastName}
+                        {user.firstname} {user.lastname}
                       </span>
                     </div>
                   </td>
@@ -135,7 +140,7 @@ export const AllUsers = () => {
                   <td className="p-3 border border-gray-300">
                     <span
                       className={`px-2 py-1 rounded text-xs font-semibold ${getUserTypeBadge(
-                        user.role
+                        user.role ?? 'undefined'
                       )}`}
                     >
                       {user.role}

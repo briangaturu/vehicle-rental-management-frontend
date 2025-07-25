@@ -49,7 +49,7 @@ export const bookingsApi = createApi({
 
     getBookingById: builder.query<Booking, number>({
       query: (bookingId) => `booking/${bookingId}`, // Changed from 'bookings' to 'booking' for consistency
-      providesTags: (result, error, id) => [{ type: "booking", id }],
+      providesTags: (_result, _error, id) => [{ type: "booking", id }],
     }),
 
     getBookingsByUserId: builder.query<Booking[], number>({

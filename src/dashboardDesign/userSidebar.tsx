@@ -1,6 +1,6 @@
 import { SquareUserRound, LogOut as LogOutIcon } from "lucide-react";
 import { FaDollarSign, FaCar } from "react-icons/fa";
-import { FaShip, FaHeadset, FaTicketAlt, FaTachometerAlt } from "react-icons/fa"; // 👈 Add Tachometer icon for Dashboard
+import { FaShip, FaTicketAlt, FaTachometerAlt } from "react-icons/fa"; // 👈 Add Tachometer icon for Dashboard
 import { useDispatch } from "react-redux";
 import { clearCredentials } from "../features/auth/authSlice";
 

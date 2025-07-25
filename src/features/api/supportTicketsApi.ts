@@ -44,7 +44,7 @@ export const ticketsApi = createApi({
 
     getTicketById: builder.query<Ticket, number>({
       query: (ticketId) => `ticket/${ticketId}`,
-      providesTags: (result, error, id) => [{ type: 'ticket', id }],
+      providesTags: (_result, _error, id) => [{ type: 'ticket', id }],
     }),
 
     getTicketsByUserId: builder.query<Ticket[], number>({

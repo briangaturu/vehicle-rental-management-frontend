@@ -45,7 +45,7 @@ export const paymentsApi = createApi({
     }),
     getPaymentById: builder.query<Payment, number>({
       query: (id) => `payments/${id}`,
-      providesTags: (res, err, id) => [{ type: "payment", id }],
+      providesTags: (_res, _err, id) => [{ type: "payment", id }],
     }),
     getPaymentsByUserId: builder.query<Payment[], number>({
       query: (userId) => `payments/user/${userId}`, // ✅ corrected path

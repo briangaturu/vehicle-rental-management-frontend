@@ -69,7 +69,7 @@ export const vehicleApi = createApi({
     }),
     getVehicleById: builder.query<Vehicle, number>({
       query: (vehicleId) => `vehicles/${vehicleId}`,
-      providesTags: (result, error, id) => [{ type: 'vehicle', id }],
+      providesTags: (_result, _error, id) => [{ type: 'vehicle', id }],
     }),
     // ⭐️ NEW: Endpoint to fetch all vehicle specifications
     getAllVehicleSpecs: builder.query<VehicleSpec[], void>({
@@ -90,7 +90,7 @@ export const vehicleApi = createApi({
         method: 'PUT',
         body: data,
       }),
-      invalidatesTags: (result, error, arg) => [
+      invalidatesTags: (_result, _error, arg) => [
         { type: 'vehicle', id: arg.vehicleId },
         'vehicles'
       ],

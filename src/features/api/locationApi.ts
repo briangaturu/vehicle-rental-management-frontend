@@ -44,7 +44,7 @@ export const locationsApi = createApi({
 
     getLocationById: builder.query<Location, number>({
       query: (locationId) => `location/${locationId}`,
-      providesTags: (result, error, id) => [{ type: "location", id }],
+      providesTags: (_result, _error, id) => [{ type: "location", id }],
     }),
 
     getLocationByName: builder.query<Location[], string>({

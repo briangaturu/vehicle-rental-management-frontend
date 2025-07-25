@@ -11,6 +11,7 @@ export interface User {
   password: string;
   contact: string;
   address: string;
+  createdAt: string;
   profileUrl?: string;
   role?: 'user' | 'admin' | 'disabled';
   bookings?: any[]; 
@@ -145,7 +146,7 @@ export const userApi = createApi({
     
     getBookingById: builder.query<BookingDetails, number>({
       query: (bookingId) => `bookings/${bookingId}`,
-      providesTags: (result, error, id) => [{ type: 'bookings', id }],
+      providesTags: (_result, _error, id) => [{ type: 'bookings', id }],
     }),
   }),
 });

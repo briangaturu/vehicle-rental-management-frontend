@@ -18,7 +18,7 @@ type UserRegisterFormValues = {
 };
 
 const SignUp: React.FC = () => {
-  const { register, handleSubmit, formState: { errors } } = useForm<UserRegisterFormValues>();
+  const { register, handleSubmit } = useForm<UserRegisterFormValues>();
   const [registerUser, { isLoading }] = userApi.useRegisterUserMutation();
   const navigate = useNavigate();
 
@@ -26,7 +26,7 @@ const SignUp: React.FC = () => {
     const loadingToastId = toast.loading("Creating Account...");
     try {
       const res = await registerUser(data).unwrap();
-      toast.success(res?.message || "Account created!", { id: loadingToastId });
+      toast.success(res || "Account created!", { id: loadingToastId });
       navigate('/login');
     } catch (err: any) {
       console.error("Registration error:", err);

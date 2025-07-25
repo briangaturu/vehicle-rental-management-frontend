@@ -5,8 +5,7 @@ import lamborghiniImage from '../assets/lamborghini aventador.jpg';
 import { useForm } from 'react-hook-form';
 import { Toaster, toast } from 'sonner';
 import { userApi } from '../features/api/userApi';
-import { useDispatch, useSelector } from 'react-redux';
-import type { RootState } from '../app/store';
+import { useDispatch,  } from 'react-redux';
 import { setCredentials } from '../features/auth/authSlice';
 import Navbar from '../components/Navbar';
 
@@ -20,7 +19,7 @@ const Login: React.FC = () => {
   const dispatch = useDispatch();
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormValues>();
   const [loginUser, { isLoading }] = userApi.useLoginUserMutation();
-  const user = useSelector((state: RootState) => state.auth.user);
+
 
   const onSubmit = async (data: LoginFormValues) => {
     const loadingToastId = toast.loading("Logging in...");

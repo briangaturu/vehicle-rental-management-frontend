@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { PuffLoader } from "react-spinners";
 import { FiEdit } from "react-icons/fi";
 import { AiFillDelete } from "react-icons/ai";
@@ -16,13 +16,12 @@ import {
   type Booking,
   type CreateBookingPayload,
 } from "../../features/api/bookingsApi";
-import { useSelector } from "react-redux";
-import type { RootState } from "../../app/store";
+
 
 export const AllBookings = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
-  const {user} = useSelector((state:RootState)=>state.auth);
+ 
 
   const {
     data: bookingsData = [],

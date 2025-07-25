@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaCar, FaUser, FaPlayCircle, FaArrowUp } from 'react-icons/fa';
+import { FaCar, FaUser, FaPlayCircle } from 'react-icons/fa';
 import { useGetAllVehiclesQuery } from '../features/api/vehiclesApi';
 import { useGetAllBookingsQuery } from '../features/api/bookingsApi';
 import { useGetAllUsersProfilesQuery } from '../features/api/userApi';

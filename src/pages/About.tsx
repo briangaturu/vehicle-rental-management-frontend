@@ -1,6 +1,6 @@
 import React from 'react';
 import Navbar from '../components/Navbar';
-import HeroSection from '../content/About/Hero';
+import HeroSection from '../content/AdminDashboard/Hero';
 import AboutUs from '../content/About/AboutUs';
 import OurMission from '../content/About/OurMission';
 import OurStory from '../content/About/OurStory';

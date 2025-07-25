@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { FaShoppingCart, FaDollarSign, FaTicketAlt } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../app/store";

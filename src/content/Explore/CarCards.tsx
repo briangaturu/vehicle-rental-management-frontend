@@ -48,7 +48,7 @@ const CarCard: React.FC<CarCardProps> = ({ vehicles }) => {
     data: locations,
     isLoading: isLocationsLoading,
     isError: isLocationsError,
-    error: locationsError,
+    error: _locationsError,
   } = useGetAllLocationsQuery();
 
   const handleCloseModal = useCallback(() => {
