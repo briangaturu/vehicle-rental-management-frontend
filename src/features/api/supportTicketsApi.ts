@@ -20,16 +20,16 @@ export interface UpdateTicketPayload extends Partial<CreateTicketPayload> {
   ticketId: number;
 }
 
-export const ticketsApi = createApi({
-  reducerPath: 'ticketsApi',
+export const supportTicketsApi = createApi({
+  reducerPath: "supportTicketsApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: 'http://localhost:5000/api/',
+    baseUrl: "http://localhost:5000/api/",
     prepareHeaders: (headers, { getState }) => {
       const token = (getState() as RootState).auth.token;
       if (token) {
-        headers.set('Authorization', `${token}`);
+        headers.set("Authorization", `${token}`);
       }
-      headers.set('Content-Type', 'application/json');
+      headers.set("Content-Type", "application/json");
       return headers;
     },
   }),
@@ -87,6 +87,6 @@ export const {
   useCreateTicketMutation,
   useUpdateTicketMutation,
   useDeleteTicketMutation,
-} = ticketsApi;
+} = supportTicketsApi;
 
-export default ticketsApi;
+export default supportTicketsApi;

@@ -37,49 +37,67 @@ const Payments: React.FC = () => {
   }
 
   return (
-    <div className="bg-white p-6 rounded shadow mt-8">
-      <h2 className="text-2xl font-bold mb-4">My Payments</h2>
+    <div className="bg-white p-6 rounded-lg shadow-md mt-8">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-gray-900">My Payments</h2>
+        <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
+          {payments.length} {payments.length === 1 ? 'payment' : 'payments'}
+        </span>
+      </div>
 
       {payments.length === 0 ? (
-        <p className="text-gray-500">No payments found.</p>
+        <div className="text-center py-8">
+          <div className="text-gray-400 text-6xl mb-4">💳</div>
+          <p className="text-gray-500 text-lg">No payments found.</p>
+          <p className="text-gray-400 text-sm">Your payment history will appear here.</p>
+        </div>
       ) : (
-        <table className="w-full text-sm">
-          <thead className="text-left text-gray-600">
-            <tr>
-              <th>Payment ID</th>
-              <th>Booking ID</th>
-              <th>Amount</th>
-              <th>Status</th>
-              <th>Method</th>
-              <th>Transaction ID</th>
-            </tr>
-          </thead>
-          <tbody>
-            {payments.map((payment) => (
-              <tr key={payment.paymentId} className="border-t">
-                <td>{payment.paymentId}</td>
-                <td>{payment.bookingId}</td>
-                <td>${payment.amount}</td>
-                <td
-                  className={[
-                    payment.paymentStatus === "Paid" &&
-                      "text-green-600 font-semibold",
-                    payment.paymentStatus === "Pending" &&
-                      "text-yellow-600 font-semibold",
-                    payment.paymentStatus === "Failed" &&
-                      "text-red-600 font-semibold",
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
-                >
-                  {payment.paymentStatus}
-                </td>
-                <td>{payment.paymentMethod || "-"}</td>
-                <td>{payment.transactionId || "-"}</td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b-2 border-gray-200">
+                <th className="text-left py-4 px-4 font-semibold text-gray-700 uppercase tracking-wider">Payment ID</th>
+                <th className="text-left py-4 px-4 font-semibold text-gray-700 uppercase tracking-wider">Booking ID</th>
+                <th className="text-left py-4 px-4 font-semibold text-gray-700 uppercase tracking-wider">Amount</th>
+                <th className="text-left py-4 px-4 font-semibold text-gray-700 uppercase tracking-wider">Status</th>
+                <th className="text-left py-4 px-4 font-semibold text-gray-700 uppercase tracking-wider">Method</th>
+                <th className="text-left py-4 px-4 font-semibold text-gray-700 uppercase tracking-wider">Transaction ID</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {payments.map((payment, index) => (
+                <tr key={payment.paymentId} className={`hover:bg-gray-50 transition-colors duration-200 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                  <td className="py-4 px-4 font-medium text-gray-900">#{payment.paymentId}</td>
+                  <td className="py-4 px-4 text-gray-700">#{payment.bookingId}</td>
+                  <td className="py-4 px-4 font-semibold text-gray-900">${payment.amount}</td>
+                  <td className="py-4 px-4">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      payment.paymentStatus === "Paid" 
+                        ? "bg-green-100 text-green-800" 
+                        : payment.paymentStatus === "Pending"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : payment.paymentStatus === "Failed"
+                        ? "bg-red-100 text-red-800"
+                        : "bg-gray-100 text-gray-800"
+                    }`}>
+                      {payment.paymentStatus}
+                    </span>
+                  </td>
+                  <td className="py-4 px-4 text-gray-700">
+                    {payment.paymentMethod || (
+                      <span className="text-gray-400 italic">-</span>
+                    )}
+                  </td>
+                  <td className="py-4 px-4 text-gray-700 font-mono text-xs">
+                    {payment.transactionId || (
+                      <span className="text-gray-400 italic">-</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

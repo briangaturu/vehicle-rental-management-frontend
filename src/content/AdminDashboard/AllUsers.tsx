@@ -69,154 +69,161 @@ export const AllUsers = () => {
 
   return (
     <>
-      <h1 className="text-2xl font-bold text-center mb-6 text-orange-500">
-        All Users
-      </h1>
+      <div className="bg-white p-6 rounded-lg shadow-md mt-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">All Users</h2>
+          <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
+            {usersData.length} {usersData.length === 1 ? 'user' : 'users'}
+          </span>
+        </div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-sm border border-gray-300">
-          <thead className="bg-orange-100 text-blue-950">
-            <tr>
-              <th className="p-3 border border-gray-300 text-left w-16">User ID</th>
-              <th className="p-3 border border-gray-300 text-left w-56">Name</th>
-              <th className="p-3 border border-gray-300 text-left w-64">Email</th>
-              <th className="p-3 border border-gray-300 text-left w-40">Joined On</th>
-              <th className="p-3 border border-gray-300 text-left w-28">Role</th>
-              <th className="p-3 border border-gray-300 text-center w-32">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {error ? (
-              <tr>
-                <td
-                  colSpan={6}
-                  className="text-center text-red-600 font-semibold p-4"
-                >
-                  Error while fetching users. Try again.
-                </td>
-              </tr>
-            ) : userDataIsLoading ? (
-              <tr>
-                <td colSpan={6} className="text-center p-4">
-                  <PuffLoader color="#0aff13" />
-                </td>
-              </tr>
-            ) : usersData.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={6}
-                  className="text-center text-gray-500 font-semibold p-4"
-                >
-                  No users found.
-                </td>
-              </tr>
-            ) : (
-              usersData.map((user: UserDetail) => (
-                <tr
-                  key={user.userId}
-                  className="hover:bg-blue-100 transition-colors"
-                >
-                  <td className="p-3 border border-gray-300">
-                    {user.userId}
-                  </td>
-                  <td className="p-3 border border-gray-300">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={user.profileUrl}
-                        alt={user.firstname}
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
-                      <span className="font-semibold text-orange-500">
-                        {user.firstname} {user.lastname}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="p-3 border border-gray-300 text-blue-950">
-                    {user.email}
-                  </td>
-                  <td className="p-3 border border-gray-300 text-gray-700">
-                    {new Date(user.createdAt).toLocaleString()}
-                  </td>
-                  <td className="p-3 border border-gray-300">
-                    <span
-                      className={`px-2 py-1 rounded text-xs font-semibold ${getUserTypeBadge(
-                        user.role ?? 'undefined'
-                      )}`}
-                    >
-                      {user.role}
-                    </span>
-                  </td>
-                  <td className="p-3 border border-gray-300 text-center">
-                    <button
-                      onClick={() => handleModalToggle(user)}
-                      className="btn btn-xs btn-outline text-blue-700 border-blue-700 hover:bg-blue-700 hover:text-white mr-2"
-                    >
-                      <FiEdit size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(user.userId)}
-                      className="btn btn-xs btn-outline text-red-600 border-red-600 hover:bg-red-600 hover:text-white"
-                    >
-                      <AiFillDelete size={16} />
-                    </button>
-                  </td>
+        {error ? (
+          <div className="text-center py-8">
+            <div className="text-red-400 text-6xl mb-4">⚠️</div>
+            <p className="text-red-600 font-medium">Error while fetching users. Try again.</p>
+          </div>
+        ) : userDataIsLoading ? (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600 font-medium">Loading users...</p>
+          </div>
+        ) : usersData.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-gray-400 text-6xl mb-4">👥</div>
+            <p className="text-gray-500 text-lg font-medium">No users found.</p>
+            <p className="text-gray-400 text-sm">Users will appear here once they register.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b-2 border-gray-200">
+                  <th className="text-left py-4 px-4 font-semibold text-gray-700 uppercase tracking-wider">User ID</th>
+                  <th className="text-left py-4 px-4 font-semibold text-gray-700 uppercase tracking-wider">Name</th>
+                  <th className="text-left py-4 px-4 font-semibold text-gray-700 uppercase tracking-wider">Email</th>
+                  <th className="text-left py-4 px-4 font-semibold text-gray-700 uppercase tracking-wider">Joined On</th>
+                  <th className="text-left py-4 px-4 font-semibold text-gray-700 uppercase tracking-wider">Role</th>
+                  <th className="text-left py-4 px-4 font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {usersData.map((user: UserDetail, index) => (
+                  <tr key={user.userId} className={`hover:bg-gray-50 transition-colors duration-200 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                    <td className="py-4 px-4 font-bold text-gray-900">#{user.userId}</td>
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={user.profileUrl || 'https://via.placeholder.com/40x40?text=U'}
+                          alt={user.firstname}
+                          className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+                        />
+                        <span className="font-semibold text-gray-900">
+                          {user.firstname} {user.lastname}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-4 text-gray-700">{user.email}</td>
+                    <td className="py-4 px-4 text-gray-700">
+                      {new Date(user.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                      })}
+                    </td>
+                    <td className="py-4 px-4">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getUserTypeBadge(user.role ?? 'undefined')}`}>
+                        {user.role}
+                      </span>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleModalToggle(user)}
+                          className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200"
+                          title="Edit user"
+                        >
+                          <FiEdit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(user.userId)}
+                          className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200"
+                          title="Delete user"
+                        >
+                          <AiFillDelete className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {isModalOpen && (
-        <div className="modal modal-open">
-          <div className="modal-box w-96 max-w-full bg-white border-2 border-orange-300">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold text-orange-500">
-                Change User Type
-              </h2>
-              <button
-                className="text-gray-600 hover:text-red-500"
-                onClick={() => handleModalToggle()}
-              >
-                <FaTimes size={20} />
-              </button>
-            </div>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSubmit();
-              }}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md relative">
+            <button
+              onClick={() => handleModalToggle()}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl font-bold"
             >
-              <div className="mb-4">
-                <label
-                  htmlFor="role"
-                  className="block text-sm font-medium text-orange-500 mb-1"
-                >
-                  User Type
-                </label>
-                <select
-                  className="select select-bordered w-full border-orange-300 text-blue-950"
-                  defaultValue={selectedUser?.role || ""}
-                >
-                  <option value="">Select UserType</option>
-                  <option value="admin">Admin</option>
-                  <option value="user">User</option>
-                  <option value="disabled">Disabled</option>
-                </select>
+              &times;
+            </button>
+
+            <div className="p-6">
+              <div className="flex items-center mb-6">
+                <div className="bg-blue-100 p-2 rounded-lg mr-3">
+                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <h2 className="text-xl font-bold text-gray-900">Change User Type</h2>
               </div>
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => handleModalToggle()}
-                  className="btn btn-error mr-2"
-                >
-                  <FaTimes /> Cancel
-                </button>
-                <button type="submit" className="btn bg-blue-700 text-white hover:bg-blue-800">
-                  <SaveIcon size={16} /> Save Profile
-                </button>
-              </div>
-            </form>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSubmit();
+                }}
+                className="space-y-6"
+              >
+                <div>
+                  <label
+                    htmlFor="role"
+                    className="block text-gray-700 font-semibold mb-2"
+                  >
+                    User Type
+                  </label>
+                  <select
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    defaultValue={selectedUser?.role || ""}
+                  >
+                    <option value="">Select User Type</option>
+                    <option value="admin">Admin</option>
+                    <option value="user">User</option>
+                    <option value="disabled">Disabled</option>
+                  </select>
+                </div>
+
+                <div className="flex gap-3 pt-6 border-t border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => handleModalToggle()}
+                    className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center"
+                  >
+                    <SaveIcon size={18} className="mr-2" />
+                    Save Profile
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}

@@ -1,16 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import type { RootState } from '../../app/store';
 
-import {type Booking as BackendBooking } from '../../features/api/bookingsApi';
+import { type Booking as BackendBooking } from '../../features/api/bookingsApi';
 import { useGetVehicleByIdQuery } from '../../features/api/vehiclesApi';
 import { useGetBookingsByUserIdQuery } from '../../features/api/bookingsApi';
+import { StripeCheckoutButton } from '../Explore/payments';
 
 interface DisplayBooking extends BackendBooking {
   vehicleName?: string;
-  status: 'Pending' | 'Active' | 'Completed' | 'Cancelled';
+  status: 'Pending' | 'Active' | 'Completed' | 'Cancelled' | 'Confirmed';
 }
 
 const VehicleNameDisplay: React.FC<{ vehicleId: number }> = ({ vehicleId }) => {
@@ -23,10 +24,10 @@ const VehicleNameDisplay: React.FC<{ vehicleId: number }> = ({ vehicleId }) => {
   return <span>{vehicle.vehicleSpec?.brand} {vehicle.vehicleSpec?.model}</span>;
 };
 
-
 const BookingTable: React.FC = () => {
   const userId = useSelector((state: RootState) => state.auth.user?.id);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const {
     data: fetchedBookings,
@@ -34,20 +35,49 @@ const BookingTable: React.FC = () => {
     isError: isBookingsError,
     error: bookingsError,
     isFetching: isBookingsFetching,
+    refetch,
   } = useGetBookingsByUserIdQuery(parseInt(userId as string), {
     skip: !userId || isNaN(parseInt(userId as string)),
   });
 
+  // Refetch bookings if redirected from Stripe with payment success
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('payment') === 'success') {
+      refetch();
+    }
+  }, [location.search, refetch]);
+
   const displayBookings: DisplayBooking[] = fetchedBookings?.map(booking => {
-    let status: 'Pending' | 'Active' | 'Completed' | 'Cancelled' = 'Pending';
+    let status: 'Pending' | 'Active' | 'Completed' | 'Cancelled' | 'Confirmed' = 'Pending';
     const today = new Date();
     const returnDate = new Date(booking.returnDate);
     const bookingDate = new Date(booking.bookingDate);
 
-    if (returnDate < today) {
-      status = 'Completed';
-    } else if (bookingDate <= today && returnDate >= today) {
-      status = 'Active';
+    // If backend explicitly sets status, use it
+    if (booking.bookingStatus === 'Confirmed') {
+      status = 'Confirmed';
+    } else if (booking.bookingStatus === 'Cancelled') {
+      status = 'Cancelled';
+    } else {
+      // Determine status based on payment and dates
+      const isPaid = booking.bookingStatus === 'Confirmed';
+      const isCurrentlyActive = bookingDate <= today && returnDate >= today;
+      const isCompleted = returnDate < today;
+
+      if (!isPaid) {
+        // Not paid = always pending
+        status = 'Pending';
+      } else if (isCompleted) {
+        // Paid and dates are over = completed
+        status = 'Completed';
+      } else if (isCurrentlyActive) {
+        // Paid and currently active = active
+        status = 'Active';
+      } else {
+        // Paid but dates haven't started yet = pending
+        status = 'Pending';
+      }
     }
 
     return {
@@ -56,7 +86,6 @@ const BookingTable: React.FC = () => {
       totalAmount: parseFloat(booking.totalAmount as any),
     };
   }) || [];
-
 
   if (isBookingsLoading || isBookingsFetching) {
     return (
@@ -75,6 +104,17 @@ const BookingTable: React.FC = () => {
     );
   }
 
+  const pendingBookings = displayBookings.filter(b => b.status === 'Pending');
+  
+  // Debug: Log booking statuses
+  console.log('All bookings:', displayBookings.map(b => ({
+    id: b.bookingId,
+    status: b.status,
+    bookingStatus: b.bookingStatus,
+    dates: { booking: b.bookingDate, return: b.returnDate }
+  })));
+  console.log('Pending bookings:', pendingBookings.length);
+
   return (
     <div className="bg-white p-6 rounded shadow mt-8">
       <div className="flex justify-between items-center mb-4">
@@ -87,6 +127,60 @@ const BookingTable: React.FC = () => {
         </button>
       </div>
 
+      {/* ✅ Show Pending Bookings as Cards */}
+      {pendingBookings.length > 0 && (
+        <div className="mb-8">
+          <div className="flex items-center mb-4">
+            <h4 className="text-lg font-bold text-gray-800">Pending Payments</h4>
+            <span className="ml-2 bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+              {pendingBookings.length} {pendingBookings.length === 1 ? 'booking' : 'bookings'}
+            </span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {pendingBookings.map(booking => (
+              <div key={booking.bookingId} className="bg-white border border-gray-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow duration-300">
+                <div className="flex items-center justify-between mb-4">
+                  <h5 className="font-bold text-gray-900 text-lg">Booking #{booking.bookingId}</h5>
+                  <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-1 rounded-full">
+                    Pending
+                  </span>
+                </div>
+                
+                <div className="space-y-3 mb-4">
+                  <div className="flex items-center">
+                    <span className="text-gray-500 text-sm font-medium w-16">Vehicle:</span>
+                    <span className="text-gray-900 font-semibold">
+                      <VehicleNameDisplay vehicleId={booking.vehicleId} />
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <span className="text-gray-500 text-sm font-medium w-16">Dates:</span>
+                    <span className="text-gray-900">
+                      {new Date(booking.bookingDate).toLocaleDateString()} - {new Date(booking.returnDate).toLocaleDateString()}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <span className="text-gray-500 text-sm font-medium w-16">Amount:</span>
+                    <span className="text-gray-900 font-bold text-lg">Ksh {booking.totalAmount.toFixed(2)}</span>
+                  </div>
+                </div>
+                
+                <div className="pt-3 border-t border-gray-100">
+                  <StripeCheckoutButton 
+                    amount={booking.totalAmount}
+                    bookingId={booking.bookingId}
+                    userId={userId}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ✅ Table for All Bookings */}
       {displayBookings.length === 0 ? (
         <p>No bookings found.</p>
       ) : (
@@ -117,6 +211,7 @@ const BookingTable: React.FC = () => {
                     booking.status === 'Completed' && 'text-blue-600 font-semibold',
                     booking.status === 'Cancelled' && 'text-red-600 font-semibold',
                     booking.status === 'Pending' && 'text-yellow-600 font-semibold',
+                    booking.status === 'Confirmed' && 'text-green-800 font-bold',
                   ]
                     .filter(Boolean)
                     .join(' ')}
