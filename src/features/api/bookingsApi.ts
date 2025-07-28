@@ -3,6 +3,9 @@ import type { RootState } from "../../app/store";
 import { apiDomain } from "../../proxxy";
 
 export interface Booking {
+  user: any;
+  [x: string]: any;
+  status: string;
   bookingStatus: string;
   bookingId: number;
   bookingDate: string;

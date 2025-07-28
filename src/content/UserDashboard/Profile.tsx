@@ -21,6 +21,8 @@ interface FormValues {
 }
 
 const Profile = () => {
+  const preset_key = "vehicles";
+  const cloud_name = "dji3abnhv";
   const navigate = useNavigate();
   const { user, isAuthenticated, role } = useSelector((state: RootState) => state.auth);
   const userId = useSelector((state: RootState) => state.auth.user?.id);
