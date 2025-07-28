@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { RootState } from '../../app/store';
+import { apiDomain } from '../../proxxy';
 
 export interface Ticket {
   ticketId: number;
@@ -23,7 +24,7 @@ export interface UpdateTicketPayload extends Partial<CreateTicketPayload> {
 export const supportTicketsApi = createApi({
   reducerPath: "supportTicketsApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "https://vehicle-rental-management-system.onrender.com/api/",
+    baseUrl:apiDomain,
     prepareHeaders: (headers, { getState }) => {
       const token = (getState() as RootState).auth.token;
       if (token) {
