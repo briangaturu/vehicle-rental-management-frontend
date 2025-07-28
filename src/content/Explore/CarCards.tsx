@@ -38,8 +38,8 @@ const CarCard: React.FC<CarCardProps> = ({ vehicles }) => {
   const [returnDate, setReturnDate] = useState('');
   const [totalAmount, setTotalAmount] = useState(0);
   const [selectedLocationId, setSelectedLocationId] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const [, setErrorMessage] = useState('');
+  const [, setSuccessMessage] = useState('');
 
   // Availability check states
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);

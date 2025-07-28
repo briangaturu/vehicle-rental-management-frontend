@@ -45,7 +45,7 @@ export interface UpdateBookingPayload extends Partial<CreateBookingPayload> {
 export const bookingsApi = createApi({
   reducerPath: "bookingsApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:5000/api/",
+    baseUrl: "https://vehicle-rental-management-system.onrender.com/api/",
     prepareHeaders: (headers, { getState }) => {
       const token = (getState() as RootState).auth.token;
       if (token) {

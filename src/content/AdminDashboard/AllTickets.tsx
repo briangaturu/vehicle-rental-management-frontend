@@ -41,7 +41,7 @@ const AllTickets = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  const onSubmit = async (data: RespondPayload) => {
+  const onSubmit = async (_data: RespondPayload) => {
     const toastId = toast.loading("Sending response...");
     try {
       if (selectedTicket) {

@@ -23,7 +23,7 @@ export interface UpdateTicketPayload extends Partial<CreateTicketPayload> {
 export const supportTicketsApi = createApi({
   reducerPath: "supportTicketsApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:5000/api/",
+    baseUrl: "https://vehicle-rental-management-system.onrender.com/api/",
     prepareHeaders: (headers, { getState }) => {
       const token = (getState() as RootState).auth.token;
       if (token) {

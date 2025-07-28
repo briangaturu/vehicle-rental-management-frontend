@@ -9,7 +9,7 @@ import {
 const UserTicketsPage: React.FC = () => {
   const userId = useSelector((state: RootState) => state.auth.user?.id);
 
-  const { data: tickets, isLoading, error, refetch } =
+  const { data: tickets, isLoading, refetch } =
     useGetTicketsByUserIdQuery(userId!, {
       skip: !userId,
     });
