@@ -11,6 +11,7 @@ import Bookings from '../content/UserDashboard/Bookings';
 
 const UserLayout: React.FC = () => {
   const [activeView, setActiveView] = useState<string>('Dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(false); // ✅ Sidebar toggle state
 
   const renderContent = () => {
     switch (activeView) {
@@ -31,9 +32,24 @@ const UserLayout: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-white">
-      {/* Sidebar */}
-      <aside className="w-64 min-h-screen bg-white shadow-md">
+      {/* Sidebar for desktop */}
+      <aside className="hidden md:block w-64 min-h-screen bg-white shadow-md">
         <Sidebar onSelect={setActiveView} />
+      </aside>
+
+      {/* Sidebar for mobile */}
+      <div
+        className={`fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden transition-opacity ${
+          sidebarOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
+        }`}
+        onClick={() => setSidebarOpen(false)}
+      ></div>
+      <aside
+        className={`fixed top-0 left-0 h-full w-64 bg-white shadow-md z-50 transform transition-transform duration-300 md:hidden ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <Sidebar onSelect={(view) => { setActiveView(view); setSidebarOpen(false); }} />
       </aside>
 
       {/* Main content */}
@@ -41,6 +57,13 @@ const UserLayout: React.FC = () => {
         {/* Navbar */}
         <header className="w-full shadow bg-white z-10">
           <Navbar />
+          {/* Mobile Sidebar Toggle Button */}
+          <button
+            className="md:hidden p-3 text-gray-700"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+          >
+            ☰
+          </button>
         </header>
 
         {/* Page content */}

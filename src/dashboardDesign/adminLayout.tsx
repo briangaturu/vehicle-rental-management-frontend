@@ -11,9 +11,11 @@ import AllTickets from '../content/AdminDashboard/AllTickets';
 import { AllUsers } from '../content/AdminDashboard/AllUsers';
 import { AllPayments } from '../content/AdminDashboard/AllPayments';
 import AllVehicleSpecs from '../content/AdminDashboard/AllVehicleSpecs';
+import { FaBars } from 'react-icons/fa';
 
 const AdminLayout: React.FC = () => {
   const [activeView, setActiveView] = useState('Dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const renderContent = () => {
     switch (activeView) {
@@ -21,43 +23,30 @@ const AdminLayout: React.FC = () => {
         return (
           <div>
             <h2 className="text-2xl font-bold mb-4">Welcome to the Dashboard!</h2>
-
             <AdminCards />
-
             <BookingsChart />
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
               <LatestBookingsTable />
               <MostBookedVehiclesTable />
             </div>
           </div>
         );
-
       case 'Vehicles':
         return <AllVehicles />;
-
-      case 'Bookings': // This is the correct and first instance for 'Bookings'
+      case 'Bookings':
         return <AllBookings />;
-
-      case 'Support': // Correct case for 'Support'
-        return <AllTickets/>; // Renders AllTickets for 'Support'
-
+      case 'Support':
+        return <AllTickets />;
       case 'Users':
         return <AllUsers />;
-
-      // ⭐ Corrected: Ensure this matches the label in your AdminSidenav
-      case 'Vehicle Specs': // Assuming your sidebar passes 'Vehicle Specs'
+      case 'Vehicle Specs':
         return <AllVehicleSpecs />;
-
       case 'Payments':
-        return <AllPayments/>;
-
+        return <AllPayments />;
       case 'Logout':
         console.log("Perform logout logic here.");
         return <h2 className="text-2xl font-bold">Logging out...</h2>;
-
       default:
-        // This is the fallback if no other case matches
         return <h2 className="text-2xl font-bold">Select a section</h2>;
     }
   };
@@ -67,12 +56,36 @@ const AdminLayout: React.FC = () => {
       {/* Navbar at top */}
       <Navbar />
 
-      <div className="flex flex-1">
-        {/* Sidebar */}
-        <AdminSidenav onSelect={setActiveView} />
+      <div className="flex flex-1 relative">
+        {/* Sidebar for large screens */}
+        <div className="hidden lg:block w-64 bg-white shadow-lg">
+          <AdminSidenav onSelect={setActiveView} />
+        </div>
+
+        {/* Toggle Button for Mobile */}
+        <button
+          className="lg:hidden absolute top-4 left-4 z-50 bg-[#0D1C49] text-white p-2 rounded-md"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+        >
+          <FaBars size={20} />
+        </button>
+
+        {/* Sidebar Drawer for Mobile */}
+        {sidebarOpen && (
+          <div className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden">
+            <div className="absolute left-0 top-0 w-64 h-full bg-white shadow-lg p-4">
+              <AdminSidenav
+                onSelect={(view) => {
+                  setActiveView(view);
+                  setSidebarOpen(false);
+                }}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Main Content */}
-        <main className="flex-1 p-8 bg-gray-50 overflow-y-auto">
+        <main className="flex-1 p-4 md:p-8 bg-gray-50 overflow-y-auto">
           {renderContent()}
         </main>
       </div>

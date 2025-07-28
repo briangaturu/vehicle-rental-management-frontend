@@ -1,7 +1,4 @@
 import { AiFillDelete } from "react-icons/ai";
-import { FiEdit } from "react-icons/fi";
-import { PuffLoader } from "react-spinners";
-import { FaTimes } from "react-icons/fa";
 import { SaveIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast, Toaster } from "sonner";
@@ -9,24 +6,20 @@ import Swal from "sweetalert2";
 import { useState } from "react";
 import {
   useGetAllTicketsQuery,
-  useCreateTicketMutation,
   useUpdateTicketMutation,
   useDeleteTicketMutation,
   type Ticket,
-  type CreateTicketPayload,
 } from "../../features/api/supportTicketsApi";
 
-const AdminTicketsTable = () => {
+type RespondPayload = {
+  adminResponse: string;
+};
+
+const AllTickets = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
 
-  const {
-    data: tickets,
-    isLoading,
-    error,
-  } = useGetAllTicketsQuery();
-
-  const [createTicket] = useCreateTicketMutation();
+  const { data: tickets, isLoading, error } = useGetAllTicketsQuery();
   const [updateTicket] = useUpdateTicketMutation();
   const [deleteTicket] = useDeleteTicketMutation();
 
@@ -35,42 +28,36 @@ const AdminTicketsTable = () => {
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<CreateTicketPayload>();
+  } = useForm<RespondPayload>();
 
   const handleModalToggle = (ticket?: Ticket) => {
     if (ticket) {
-      setEditingTicket(ticket);
-      reset(ticket);
+      setSelectedTicket(ticket);
+      reset({ adminResponse: "" }); // Reset only response field
     } else {
-      setEditingTicket(null);
+      setSelectedTicket(null);
       reset();
     }
     setIsModalOpen(!isModalOpen);
   };
 
-  const onSubmit = async (data: CreateTicketPayload) => {
-    const toastId = toast.loading(
-      editingTicket ? "Updating ticket..." : "Creating ticket..."
-    );
+  const onSubmit = async (data: RespondPayload) => {
+    const toastId = toast.loading("Sending response...");
     try {
-      if (editingTicket) {
+      if (selectedTicket) {
         await updateTicket({
-          ticketId: editingTicket.ticketId,
-          ...data,
+          ticketId: selectedTicket.ticketId,
+          
         }).unwrap();
-        toast.success("Ticket updated successfully!", { id: toastId });
-      } else {
-        await createTicket(data).unwrap();
-        toast.success("Ticket created successfully!", { id: toastId });
+        toast.success("Response sent successfully!", { id: toastId });
       }
       setIsModalOpen(false);
-      setEditingTicket(null);
+      setSelectedTicket(null);
       reset();
     } catch (err: any) {
-      toast.error(
-        "Failed: " + (err?.data?.message || "Something went wrong"),
-        { id: toastId }
-      );
+      toast.error("Failed: " + (err?.data?.message || "Something went wrong"), {
+        id: toastId,
+      });
     }
   };
 
@@ -99,212 +86,164 @@ const AdminTicketsTable = () => {
   return (
     <>
       <Toaster richColors position="top-right" />
-      
-      <div className="bg-white p-6 rounded-lg shadow-md mt-8">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-blue-950">All Tickets</h1>
-          <span className="bg-green-100 text-red-500 text-sm font-medium px-3 py-1 rounded-full">
-            {tickets?.length || 0} {tickets?.length === 1 ? 'ticket' : 'tickets'}
+
+      <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md mt-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
+          <h1 className="text-lg sm:text-2xl font-bold text-blue-950">
+            All Tickets
+          </h1>
+          <span className="bg-green-100 text-red-500 text-xs sm:text-sm font-medium px-3 py-1 rounded-full">
+            {tickets?.length || 0} {tickets?.length === 1 ? "ticket" : "tickets"}
           </span>
         </div>
 
-        <button
-          onClick={() => handleModalToggle()}
-          className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 font-medium mb-6 flex items-center"
-        >
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-          Create Ticket
-        </button>
-
+        {/* Error / Loading / Empty States */}
         {error && (
           <div className="text-center py-8">
-            <div className="text-red-400 text-6xl mb-4">⚠️</div>
+            <div className="text-red-400 text-5xl sm:text-6xl mb-4">⚠️</div>
             <p className="text-red-600 font-medium">Error loading tickets.</p>
           </div>
         )}
 
         {isLoading && (
           <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
             <p className="text-gray-600 font-medium">Loading tickets...</p>
           </div>
         )}
 
         {!isLoading && !error && tickets?.length === 0 && (
           <div className="text-center py-12">
-            <div className="text-gray-400 text-6xl mb-4">🎫</div>
+            <div className="text-gray-400 text-5xl sm:text-6xl mb-4">🎫</div>
             <p className="text-gray-500 text-lg font-medium">No tickets found.</p>
-            <p className="text-gray-400 text-sm">Support tickets will appear here once they are created.</p>
+            <p className="text-gray-400 text-sm">
+              Support tickets will appear here once created.
+            </p>
           </div>
         )}
 
+        {/* Cards Grid */}
         {!isLoading && !error && tickets && tickets.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b-2 border-gray-200">
-                  <th className="text-left py-4 px-4 font-semibold text-red-500 uppercase tracking-wider">#</th>
-                  <th className="text-left py-4 px-4 font-semibold text-red-500 uppercase tracking-wider">Subject</th>
-                  <th className="text-left py-4 px-4 font-semibold text-red-500 uppercase tracking-wider">Description</th>
-                  <th className="text-left py-4 px-4 font-semibold text-red-500 uppercase tracking-wider">User ID</th>
-                  <th className="text-left py-4 px-4 font-semibold text-red-500 uppercase tracking-wider">Created</th>
-                  <th className="text-left py-4 px-4 font-semibold text-red-500 uppercase tracking-wider">Updated</th>
-                  <th className="text-left py-4 px-4 font-semibold text-red-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {tickets.map((ticket: Ticket, index) => (
-                  <tr key={ticket.ticketId} className={`hover:bg-green-50 transition-colors duration-200 ${index % 2 === 0 ? 'bg-white' : 'bg-green-50'}`}>
-                    <td className="py-4 px-4 font-bold text-gray-900">#{ticket.ticketId}</td>
-                    <td className="py-4 px-4 text-gray-700 font-medium">{ticket.subject}</td>
-                    <td className="py-4 px-4 text-gray-700 max-w-xs">
-                      <div className="truncate" title={ticket.description}>
-                        {ticket.description}
-                      </div>
-                    </td>
-                    <td className="py-4 px-4 text-gray-700">#{ticket.userId}</td>
-                    <td className="py-4 px-4 text-gray-700">
-                      {ticket.createdAt
-                        ? new Date(ticket.createdAt).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })
-                        : (
-                          <span className="text-gray-400 italic">N/A</span>
-                        )}
-                    </td>
-                    <td className="py-4 px-4 text-gray-700">
-                      {ticket.updatedAt
-                        ? new Date(ticket.updatedAt).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })
-                        : (
-                          <span className="text-gray-400 italic">N/A</span>
-                        )}
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleModalToggle(ticket)}
-                          className="p-2 text-blue-700 hover:bg-blue-100 rounded-lg transition-colors duration-200"
-                          title="Edit ticket"
-                        >
-                          <FiEdit size={18} />
-                        </button>
-                        <button
-                          onClick={() => deleteTicketById(ticket.ticketId)}
-                          className="p-2 text-red-500 hover:bg-red-100 rounded-lg transition-colors duration-200"
-                          title="Delete ticket"
-                        >
-                          <AiFillDelete size={18} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {tickets.map((ticket: Ticket) => (
+              <div
+                key={ticket.ticketId}
+                className="bg-white border rounded-lg shadow hover:shadow-lg transition p-4 flex flex-col justify-between"
+              >
+                {/* Ticket Info */}
+                <div>
+                  <h2 className="text-lg font-bold text-blue-950 mb-2">
+                    {ticket.subject}
+                  </h2>
+                  <p className="text-gray-600 text-sm mb-3">
+                    {ticket.description.length > 80
+                      ? ticket.description.slice(0, 80) + "..."
+                      : ticket.description}
+                  </p>
+                </div>
+
+                <div className="text-xs text-gray-500 space-y-1 mb-4">
+                  <p>
+                    <span className="font-semibold">Ticket ID:</span> #
+                    {ticket.ticketId}
+                  </p>
+                  <p>
+                    <span className="font-semibold">User ID:</span> #
+                    {ticket.userId}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Created:</span>{" "}
+                    {ticket.createdAt
+                      ? new Date(ticket.createdAt).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
+                      : "N/A"}
+                  </p>
+                </div>
+
+                {/* Actions */}
+                <div className="flex justify-between mt-auto pt-3 border-t border-gray-200">
+                  <button
+                    onClick={() => handleModalToggle(ticket)}
+                    className="flex items-center gap-1 text-green-600 hover:bg-green-100 px-3 py-1 rounded-lg transition"
+                  >
+                    💬 Respond
+                  </button>
+                  <button
+                    onClick={() => deleteTicketById(ticket.ticketId)}
+                    className="flex items-center gap-1 text-red-500 hover:bg-red-100 px-3 py-1 rounded-lg transition"
+                  >
+                    <AiFillDelete size={16} /> Delete
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
 
-      {isModalOpen && (
+      {/* Modal */}
+      {isModalOpen && selectedTicket && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg relative">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md sm:max-w-lg relative">
             <button
               onClick={() => handleModalToggle()}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl font-bold"
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-2xl"
             >
               &times;
             </button>
 
-            <div className="p-6">
-              <div className="flex items-center mb-6">
-                <div className="bg-green-100 p-2 rounded-lg mr-3">
-                  <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900">
-                  {editingTicket ? "Edit Ticket" : "Create New Ticket"}
-                </h3>
+            <div className="p-4 sm:p-6">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">
+                Respond to Ticket
+              </h3>
+
+              <div className="mb-4">
+                <p className="text-sm text-gray-600">
+                  <span className="font-semibold">Subject:</span>{" "}
+                  {selectedTicket.subject}
+                </p>
+                <p className="text-sm text-gray-600">
+                  <span className="font-semibold">Description:</span>{" "}
+                  {selectedTicket.description}
+                </p>
               </div>
 
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>
-                  <label className="block text-gray-700 font-semibold mb-2">
-                    Subject
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors"
-                    {...register("subject", { required: true })}
-                    placeholder="Enter ticket subject"
-                  />
-                  {errors.subject && (
-                    <span className="text-red-500 text-xs mt-1 block">
-                      Subject is required
-                    </span>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-gray-700 font-semibold mb-2">
-                    Description
+                  <label className="block text-gray-700 font-semibold mb-1">
+                    Your Response
                   </label>
                   <textarea
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                     rows={4}
-                    {...register("description", { required: true })}
-                    placeholder="Enter ticket description"
+                    {...register("adminResponse", { required: true })}
+                    placeholder="Type your response to the user"
                   />
-                  {errors.description && (
-                    <span className="text-red-500 text-xs mt-1 block">
-                      Description is required
-                    </span>
+                  {errors.adminResponse && (
+                    <p className="text-red-500 text-xs">Response is required</p>
                   )}
                 </div>
 
-                <div>
-                  <label className="block text-gray-700 font-semibold mb-2">
-                    User ID
-                  </label>
-                  <input
-                    type="number"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors"
-                    {...register("userId", { required: true })}
-                    placeholder="Enter user ID"
-                  />
-                  {errors.userId && (
-                    <span className="text-red-500 text-xs mt-1 block">
-                      User ID is required
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex gap-3 pt-6 border-t border-gray-200">
+                <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200">
                   <button
                     type="button"
                     onClick={() => handleModalToggle()}
-                    className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                   >
                     Cancel
                   </button>
-                  <button 
-                    type="submit" 
-                    className="flex-1 bg-red-600 text-white px-4 py-3 rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center justify-center"
+                  <button
+                    type="submit"
+                    className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center justify-center"
                   >
                     <SaveIcon size={18} className="mr-2" />
-                    {editingTicket ? "Update Ticket" : "Create Ticket"}
+                    Send Response
                   </button>
                 </div>
               </form>
@@ -316,4 +255,4 @@ const AdminTicketsTable = () => {
   );
 };
 
-export default AdminTicketsTable;
+export default AllTickets;

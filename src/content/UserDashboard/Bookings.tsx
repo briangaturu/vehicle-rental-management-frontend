@@ -40,7 +40,6 @@ const BookingTable: React.FC = () => {
     skip: !userId || isNaN(parseInt(userId as string)),
   });
 
-  // Refetch bookings if redirected from Stripe with payment success
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get('payment') === 'success') {
@@ -48,44 +47,39 @@ const BookingTable: React.FC = () => {
     }
   }, [location.search, refetch]);
 
-  const displayBookings: DisplayBooking[] = fetchedBookings?.map(booking => {
-    let status: 'Pending' | 'Active' | 'Completed' | 'Cancelled' | 'Confirmed' = 'Pending';
-    const today = new Date();
-    const returnDate = new Date(booking.returnDate);
-    const bookingDate = new Date(booking.bookingDate);
+  const displayBookings: DisplayBooking[] =
+    fetchedBookings?.map((booking) => {
+      let status: 'Pending' | 'Active' | 'Completed' | 'Cancelled' | 'Confirmed' = 'Pending';
+      const today = new Date();
+      const returnDate = new Date(booking.returnDate);
+      const bookingDate = new Date(booking.bookingDate);
 
-    // If backend explicitly sets status, use it
-    if (booking.bookingStatus === 'Confirmed') {
-      status = 'Confirmed';
-    } else if (booking.bookingStatus === 'Cancelled') {
-      status = 'Cancelled';
-    } else {
-      // Determine status based on payment and dates
-      const isPaid = booking.bookingStatus === 'Confirmed';
-      const isCurrentlyActive = bookingDate <= today && returnDate >= today;
-      const isCompleted = returnDate < today;
-
-      if (!isPaid) {
-        // Not paid = always pending
-        status = 'Pending';
-      } else if (isCompleted) {
-        // Paid and dates are over = completed
-        status = 'Completed';
-      } else if (isCurrentlyActive) {
-        // Paid and currently active = active
-        status = 'Active';
+      if (booking.bookingStatus === 'Confirmed') {
+        status = 'Confirmed';
+      } else if (booking.bookingStatus === 'Cancelled') {
+        status = 'Cancelled';
       } else {
-        // Paid but dates haven't started yet = pending
-        status = 'Pending';
-      }
-    }
+        const isPaid = booking.bookingStatus === 'Confirmed';
+        const isCurrentlyActive = bookingDate <= today && returnDate >= today;
+        const isCompleted = returnDate < today;
 
-    return {
-      ...booking,
-      status,
-      totalAmount: parseFloat(booking.totalAmount as any),
-    };
-  }) || [];
+        if (!isPaid) {
+          status = 'Pending';
+        } else if (isCompleted) {
+          status = 'Completed';
+        } else if (isCurrentlyActive) {
+          status = 'Active';
+        } else {
+          status = 'Pending';
+        }
+      }
+
+      return {
+        ...booking,
+        status,
+        totalAmount: parseFloat(booking.totalAmount as any),
+      };
+    }) || [];
 
   if (isBookingsLoading || isBookingsFetching) {
     return (
@@ -104,71 +98,65 @@ const BookingTable: React.FC = () => {
     );
   }
 
-  const pendingBookings = displayBookings.filter(b => b.status === 'Pending');
-  
-  // Debug: Log booking statuses
-  console.log('All bookings:', displayBookings.map(b => ({
-    id: b.bookingId,
-    status: b.status,
-    bookingStatus: b.bookingStatus,
-    dates: { booking: b.bookingDate, return: b.returnDate }
-  })));
-  console.log('Pending bookings:', pendingBookings.length);
+  const pendingBookings = displayBookings.filter((b) => b.status === 'Pending');
 
   return (
     <div className="bg-white p-6 rounded shadow mt-8">
-      <div className="flex justify-between items-center mb-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
         <h3 className="text-lg font-bold">My Recent Bookings</h3>
         <button
-          className="flex items-center bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-sm"
+          className="flex items-center bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-sm w-full sm:w-auto justify-center"
           onClick={() => navigate('/explore')}
         >
           <FaPlus className="mr-2" /> New Booking
         </button>
       </div>
 
-      {/* ✅ Show Pending Bookings as Cards */}
+      {/* Pending Bookings as Cards */}
       {pendingBookings.length > 0 && (
         <div className="mb-8">
-          <div className="flex items-center mb-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center mb-4 gap-2">
             <h4 className="text-lg font-bold text-gray-800">Pending Payments</h4>
-            <span className="ml-2 bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+            <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
               {pendingBookings.length} {pendingBookings.length === 1 ? 'booking' : 'bookings'}
             </span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {pendingBookings.map(booking => (
-              <div key={booking.bookingId} className="bg-white border border-gray-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow duration-300">
+            {pendingBookings.map((booking) => (
+              <div
+                key={booking.bookingId}
+                className="bg-white border border-gray-200 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow duration-300"
+              >
                 <div className="flex items-center justify-between mb-4">
                   <h5 className="font-bold text-gray-900 text-lg">Booking #{booking.bookingId}</h5>
                   <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-1 rounded-full">
                     Pending
                   </span>
                 </div>
-                
-                <div className="space-y-3 mb-4">
-                  <div className="flex items-center">
-                    <span className="text-gray-500 text-sm font-medium w-16">Vehicle:</span>
+
+                <div className="space-y-3 mb-4 text-sm">
+                  <div className="flex flex-col sm:flex-row">
+                    <span className="text-gray-500 font-medium w-20">Vehicle:</span>
                     <span className="text-gray-900 font-semibold">
                       <VehicleNameDisplay vehicleId={booking.vehicleId} />
                     </span>
                   </div>
-                  
-                  <div className="flex items-center">
-                    <span className="text-gray-500 text-sm font-medium w-16">Dates:</span>
+                  <div className="flex flex-col sm:flex-row">
+                    <span className="text-gray-500 font-medium w-20">Dates:</span>
                     <span className="text-gray-900">
-                      {new Date(booking.bookingDate).toLocaleDateString()} - {new Date(booking.returnDate).toLocaleDateString()}
+                      {new Date(booking.bookingDate).toLocaleDateString()} -{' '}
+                      {new Date(booking.returnDate).toLocaleDateString()}
                     </span>
                   </div>
-                  
-                  <div className="flex items-center">
-                    <span className="text-gray-500 text-sm font-medium w-16">Amount:</span>
-                    <span className="text-gray-900 font-bold text-lg">Ksh {booking.totalAmount.toFixed(2)}</span>
+                  <div className="flex flex-col sm:flex-row">
+                    <span className="text-gray-500 font-medium w-20">Amount:</span>
+                    <span className="text-gray-900 font-bold">Ksh {booking.totalAmount.toFixed(2)}</span>
                   </div>
                 </div>
-                
+
                 <div className="pt-3 border-t border-gray-100">
-                  <StripeCheckoutButton 
+                  <StripeCheckoutButton
                     amount={booking.totalAmount}
                     bookingId={booking.bookingId}
                     userId={userId}
@@ -180,49 +168,51 @@ const BookingTable: React.FC = () => {
         </div>
       )}
 
-      {/* ✅ Table for All Bookings */}
+      {/* Responsive Table */}
       {displayBookings.length === 0 ? (
         <p>No bookings found.</p>
       ) : (
-        <table className="w-full text-sm">
-          <thead className="text-left text-gray-600">
-            <tr>
-              <th className="py-2 px-4">Booking ID</th>
-              <th className="py-2 px-4">Vehicle</th>
-              <th className="py-2 px-4">Booking Date</th>
-              <th className="py-2 px-4">Return Date</th>
-              <th className="py-2 px-4">Status</th>
-              <th className="py-2 px-4">Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            {displayBookings.map((booking) => (
-              <tr key={booking.bookingId} className="border-t">
-                <td className="py-2 px-4">{booking.bookingId}</td>
-                <td className="py-2 px-4">
-                  <VehicleNameDisplay vehicleId={booking.vehicleId} />
-                </td>
-                <td className="py-2 px-4">{new Date(booking.bookingDate).toLocaleDateString()}</td>
-                <td className="py-2 px-4">{new Date(booking.returnDate).toLocaleDateString()}</td>
-                <td
-                  className={[
-                    'py-2 px-4',
-                    booking.status === 'Active' && 'text-green-600 font-semibold',
-                    booking.status === 'Completed' && 'text-blue-600 font-semibold',
-                    booking.status === 'Cancelled' && 'text-red-600 font-semibold',
-                    booking.status === 'Pending' && 'text-yellow-600 font-semibold',
-                    booking.status === 'Confirmed' && 'text-green-800 font-bold',
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
-                >
-                  {booking.status}
-                </td>
-                <td className="py-2 px-4">Ksh {booking.totalAmount.toFixed(2)}</td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[650px]">
+            <thead className="text-left text-gray-600">
+              <tr>
+                <th className="py-2 px-4">Booking ID</th>
+                <th className="py-2 px-4">Vehicle</th>
+                <th className="py-2 px-4">Booking Date</th>
+                <th className="py-2 px-4">Return Date</th>
+                <th className="py-2 px-4">Status</th>
+                <th className="py-2 px-4">Amount</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {displayBookings.map((booking) => (
+                <tr key={booking.bookingId} className="border-t">
+                  <td className="py-2 px-4">{booking.bookingId}</td>
+                  <td className="py-2 px-4">
+                    <VehicleNameDisplay vehicleId={booking.vehicleId} />
+                  </td>
+                  <td className="py-2 px-4">{new Date(booking.bookingDate).toLocaleDateString()}</td>
+                  <td className="py-2 px-4">{new Date(booking.returnDate).toLocaleDateString()}</td>
+                  <td
+                    className={[
+                      'py-2 px-4',
+                      booking.status === 'Active' && 'text-green-600 font-semibold',
+                      booking.status === 'Completed' && 'text-blue-600 font-semibold',
+                      booking.status === 'Cancelled' && 'text-red-600 font-semibold',
+                      booking.status === 'Pending' && 'text-yellow-600 font-semibold',
+                      booking.status === 'Confirmed' && 'text-green-800 font-bold',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
+                  >
+                    {booking.status}
+                  </td>
+                  <td className="py-2 px-4">Ksh {booking.totalAmount.toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

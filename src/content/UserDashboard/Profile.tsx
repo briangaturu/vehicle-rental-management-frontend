@@ -117,161 +117,132 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen text-gray-800 py-10 px-5 bg-white from-white to-gray-100">
-      <div className="max-w-4xl mx-auto rounded-lg shadow-xl overflow-hidden bg-white border border-gray-200">
-
-        {/* Header */}
-        <div className="bg-[#0D1C49] text-white p-6 flex flex-col md:flex-row items-center justify-between shadow-md">
-          <div className="relative flex items-center gap-4 mb-4 md:mb-0">
-            <img
-              src={user?.profileUrl || profilePicture}
-              alt="Profile"
-              className="w-28 h-28 rounded-full border-4 border-white object-cover shadow-lg"
-            />
-            <label
-              htmlFor="profile-picture-upload"
-              className="absolute bottom-0 right-0 md:right-auto md:left-20 bg-[#EF4444] p-2 rounded-full cursor-pointer hover:opacity-90 transition duration-200 shadow-md"
-              title="Change Profile Picture"
-            >
-              <FaCamera className="text-white text-lg" />
-              <input
-                type="file"
-                id="profile-picture-upload"
-                className="hidden"
-                onChange={handleImageUpload}
-                accept="image/*"
-                disabled={isUploadingImage}
-              />
-            </label>
-            <div>
-              <h2 className="text-4xl font-extrabold mb-1">
-                {user?.firstname || 'User'} {user?.lastname || 'Profile'}
-              </h2>
-              <p className="text-gray-300 text-lg">{user?.email}</p>
-              {user?.role && (
-                <span className="text-sm bg-white text-[#0F172A] font-semibold px-3 py-1 rounded mt-2 inline-block">
-                  {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                </span>
-              )}
-            </div>
-          </div>
-          <button
-            className="btn bg-red-500 hover:bg-blue-900 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-200 flex items-center gap-2"
-            onClick={handleModalToggle}
-            disabled={isUpdatingProfile || isUploadingImage}
+    <div className="min-h-screen text-gray-800 py-6 px-4 sm:py-10 sm:px-6 bg-white from-white to-gray-100">
+    <div className="max-w-4xl mx-auto rounded-lg shadow-xl overflow-hidden bg-white border border-gray-200">
+  
+      {/* Header */}
+      <div className="bg-[#0D1C49] text-white p-6 flex flex-col sm:flex-row items-center justify-between gap-6 sm:gap-4 shadow-md">
+        <div className="relative flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+          <img
+            src={user?.profileUrl || profilePicture}
+            alt="Profile"
+            className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-white object-cover shadow-lg"
+          />
+          <label
+            htmlFor="profile-picture-upload"
+            className="absolute bottom-0 right-0 sm:static sm:ml-4 bg-[#EF4444] p-2 rounded-full cursor-pointer hover:opacity-90 transition duration-200 shadow-md"
+            title="Change Profile Picture"
           >
-            <FaEdit className="text-lg" /> Edit Profile
+            <FaCamera className="text-white text-lg" />
+            <input
+              type="file"
+              id="profile-picture-upload"
+              className="hidden"
+              onChange={handleImageUpload}
+              accept="image/*"
+              disabled={isUploadingImage}
+            />
+          </label>
+          <div>
+            <h2 className="text-2xl sm:text-4xl font-extrabold mb-1">
+              {user?.firstname || 'User'} {user?.lastname || 'Profile'}
+            </h2>
+            <p className="text-gray-300 text-base sm:text-lg">{user?.email}</p>
+            {user?.role && (
+              <span className="text-sm bg-white text-[#0F172A] font-semibold px-3 py-1 rounded mt-2 inline-block">
+                {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+              </span>
+            )}
+          </div>
+        </div>
+        <button
+          className="btn bg-red-500 hover:bg-blue-900 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-200 flex items-center justify-center gap-2 w-full sm:w-auto"
+          onClick={handleModalToggle}
+          disabled={isUpdatingProfile || isUploadingImage}
+        >
+          <FaEdit className="text-lg" /> Edit Profile
+        </button>
+      </div>
+  
+      {/* Info */}
+      <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 text-center md:text-left">
+        <div className="bg-gray-50 rounded-lg p-6 border border-gray-200 shadow-sm">
+          <h3 className="text-xl sm:text-2xl font-bold mb-4 text-[#0D1C49] border-b pb-2 border-gray-300">Personal Information</h3>
+          <div className="space-y-3 text-gray-700">
+            <p><span className="font-semibold text-[#EF4444]">First Name:</span> {userProfile?.firstname || 'N/A'}</p>
+            <p><span className="font-semibold text-[#EF4444]">Last Name:</span> {userProfile?.lastname || 'N/A'}</p>
+            <p><span className="font-semibold text-[#EF4444]">Email:</span> {userProfile?.email || 'N/A'}</p>
+            <p><span className="font-semibold text-[#EF4444]">Contact:</span> {userProfile?.contact || 'N/A'}</p>
+            <p><span className="font-semibold text-[#EF4444]">Address:</span> {userProfile?.address || 'N/A'}</p>
+          </div>
+        </div>
+  
+        <div className="bg-gray-50 rounded-lg p-6 border border-gray-200 shadow-sm">
+          <h3 className="text-xl sm:text-2xl font-bold mb-4 text-[#0D1C49] border-b pb-2 border-gray-300">Security Settings</h3>
+          <p className="mb-4 text-gray-700">
+            <span className="font-semibold text-[#EF4444]">Password:</span> ********
+          </p>
+          <button
+            className="btn bg-[#EF4444] hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-colors duration-200 w-full sm:w-auto"
+            disabled
+          >
+            Change Password
           </button>
         </div>
-
-        {/* Info */}
-        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-gray-50 rounded-lg p-6 border border-gray-200 shadow-sm">
-            <h3 className="text-2xl font-bold mb-4 text-[#0D1C49] border-b pb-2 border-gray-300">Personal Information</h3>
-            <div className="space-y-3 text-gray-700">
-              <p><span className="font-semibold text-[#EF4444]">First Name:</span> {userProfile?.firstname || 'N/A'}</p>
-              <p><span className="font-semibold text-[#EF4444]">Last Name:</span> {userProfile?.lastname || 'N/A'}</p>
-              <p><span className="font-semibold text-[#EF4444]">Email:</span> {userProfile?.email || 'N/A'}</p>
-              <p><span className="font-semibold text-[#EF4444]">Contact:</span> {userProfile?.contact || 'N/A'}</p>
-              <p><span className="font-semibold text-[#EF4444]">Address:</span> {userProfile?.address || 'N/A'}</p>
+      </div>
+    </div>
+  
+    {/* Modal */}
+    {isModalOpen && (
+      <div className="modal modal-open flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div className="modal-box bg-white p-6 sm:p-8 rounded-lg shadow-xl relative w-[90%] max-w-lg text-gray-800">
+          <button
+            className="btn btn-sm btn-circle absolute right-4 top-4 bg-gray-200 hover:bg-gray-300 text-gray-700"
+            onClick={handleModalToggle}
+            disabled={isUpdatingProfile}
+          >
+            ✕
+          </button>
+          <div className="flex justify-center items-center mb-6">
+            <h2 className="text-xl sm:text-3xl font-bold text-[#0F172A]">Edit Your Profile</h2>
+          </div>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+              <input type="text" className="input input-bordered w-full" {...register('firstname', { required: 'First Name is required' })} />
+              {errors.firstname && <p className="text-red-500 text-sm mt-1">{errors.firstname.message}</p>}
             </div>
-          </div>
-
-          <div className="bg-gray-50 rounded-lg p-6 border border-gray-200 shadow-sm">
-            <h3 className="text-2xl font-bold mb-4 text-[#0D1C49] border-b pb-2 border-gray-300">Security Settings</h3>
-            <p className="mb-4 text-gray-700">
-              <span className="font-semibold text-[#EF4444]">Password:</span> ********
-            </p>
-            <button
-              className="btn bg-[#EF4444] hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-colors duration-200"
-              disabled
-            >
-              Change Password
-            </button>
-          </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+              <input type="text" className="input input-bordered w-full" {...register('lastname', { required: 'Last Name is required' })} />
+              {errors.lastname && <p className="text-red-500 text-sm mt-1">{errors.lastname.message}</p>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input type="email" readOnly className="input input-bordered w-full bg-gray-100 text-gray-500 cursor-not-allowed" {...register('email')} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Contact</label>
+              <input type="text" className="input input-bordered w-full" {...register('contact')} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+              <textarea className="textarea textarea-bordered w-full" rows={3} {...register('address')}></textarea>
+            </div>
+            <div className="flex flex-col sm:flex-row justify-end gap-3">
+              <button type="button" onClick={handleModalToggle} className="btn bg-gray-400 hover:bg-gray-500 text-white w-full sm:w-auto">
+                <FaTimes /> Cancel
+              </button>
+              <button type="submit" className="btn bg-[#EF4444] hover:bg-red-700 text-white w-full sm:w-auto" disabled={isUpdatingProfile}>
+                <SaveIcon className="w-4 h-4" /> {isUpdatingProfile ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
-
-      {/* Modal */}
-      {isModalOpen && (
-        <div className="modal modal-open flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="modal-box bg-white p-8 rounded-lg shadow-xl relative max-w-lg w-full text-gray-800">
-            <button
-              className="btn btn-sm btn-circle absolute right-4 top-4 bg-gray-200 hover:bg-gray-300 text-gray-700"
-              onClick={handleModalToggle}
-              disabled={isUpdatingProfile}
-            >
-              ✕
-            </button>
-            <div className="flex justify-center items-center mb-6">
-              <h2 className="text-3xl font-bold text-[#0F172A]">Edit Your Profile</h2>
-            </div>
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                <input
-                  type="text"
-                  className="input input-bordered w-full text-gray-800"
-                  {...register('firstname', { required: 'First Name is required' })}
-                />
-                {errors.firstname && <p className="text-red-500 text-sm mt-1">{errors.firstname.message}</p>}
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                <input
-                  type="text"
-                  className="input input-bordered w-full text-gray-800"
-                  {...register('lastname', { required: 'Last Name is required' })}
-                />
-                {errors.lastname && <p className="text-red-500 text-sm mt-1">{errors.lastname.message}</p>}
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input
-                  type="email"
-                  readOnly
-                  className="input input-bordered w-full bg-gray-100 text-gray-500 cursor-not-allowed"
-                  {...register('email')}
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Contact</label>
-                <input
-                  type="text"
-                  className="input input-bordered w-full text-gray-800"
-                  {...register('contact')}
-                />
-              </div>
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                <textarea
-                  className="textarea textarea-bordered w-full text-gray-800"
-                  rows={3}
-                  {...register('address')}
-                ></textarea>
-              </div>
-
-              <div className="flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={handleModalToggle}
-                  className="btn bg-gray-400 hover:bg-gray-500 text-white font-bold shadow-md flex items-center gap-2"
-                >
-                  <FaTimes /> Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="btn bg-[#EF4444] hover:bg-red-700 text-white font-bold shadow-md flex items-center gap-2"
-                  disabled={isUpdatingProfile}
-                >
-                  <SaveIcon className="w-4 h-4" /> {isUpdatingProfile ? 'Saving...' : 'Save Changes'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
+    )}
+  </div>
+  
   );
 };
 

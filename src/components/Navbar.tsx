@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 import type { RootState } from "../app/store";
 import { clearCredentials } from "../features/auth/authSlice";
-import { FaUserCircle } from "react-icons/fa";
+import { FaUserCircle, FaBars, FaTimes } from "react-icons/fa";
 
 const Navbar: React.FC = () => {
   const dispatch = useDispatch();
@@ -13,6 +13,7 @@ const Navbar: React.FC = () => {
   const firstName = user?.firstName || "";
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = () => {
@@ -33,14 +34,16 @@ const Navbar: React.FC = () => {
   }, []);
 
   return (
-    <nav className="bg-[#0D1C49] text-white py-4 px-8 flex justify-between items-center">
+    <nav className="bg-[#0D1C49] text-white py-4 px-4 sm:px-8 flex justify-between items-center relative">
+      {/* Logo */}
       <div className="text-2xl font-bold">
         <Link to="/">
           Ride<span className="text-red-500 text-3xl">X</span>press
         </Link>
       </div>
 
-      <ul className="flex space-x-6 font-medium">
+      {/* Desktop Menu */}
+      <ul className="hidden md:flex space-x-6 font-medium">
         <li className="hover:text-red-500 transition-colors duration-200">
           <Link to="/">HOME</Link>
         </li>
@@ -55,7 +58,8 @@ const Navbar: React.FC = () => {
         </li>
       </ul>
 
-      <div className="relative" ref={dropdownRef}>
+      {/* Desktop Auth Section */}
+      <div className="hidden md:block relative" ref={dropdownRef}>
         {isAuthenticated ? (
           <div className="flex flex-col items-center">
             <button onClick={() => setDropdownOpen(!dropdownOpen)}>
@@ -101,6 +105,53 @@ const Navbar: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Mobile Menu Button */}
+      <button
+        className="md:hidden text-white text-2xl focus:outline-none"
+        onClick={() => setMenuOpen(!menuOpen)}
+      >
+        {menuOpen ? <FaTimes /> : <FaBars />}
+      </button>
+
+      {/* Mobile Menu */}
+      {menuOpen && (
+        <div className="absolute top-16 left-0 w-full bg-[#0D1C49] text-white flex flex-col items-center space-y-4 py-6 shadow-md z-40 md:hidden">
+          <Link to="/" onClick={() => setMenuOpen(false)}>HOME</Link>
+          <Link to="/about" onClick={() => setMenuOpen(false)}>ABOUT</Link>
+          <Link to="/explore" onClick={() => setMenuOpen(false)}>EXPLORE</Link>
+          <Link to="/contact" onClick={() => setMenuOpen(false)}>CONTACT</Link>
+
+          {isAuthenticated ? (
+            <>
+              <Link
+                to={role === "admin" ? "/admin" : "/user"}
+                onClick={() => setMenuOpen(false)}
+              >
+                Dashboard
+              </Link>
+              <button onClick={handleLogout}>Logout</button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/signup"
+                className="bg-red-500 px-3 py-1 rounded hover:bg-red-600"
+                onClick={() => setMenuOpen(false)}
+              >
+                SIGNUP
+              </Link>
+              <Link
+                to="/login"
+                className="bg-red-500 px-3 py-1 rounded hover:bg-red-600"
+                onClick={() => setMenuOpen(false)}
+              >
+                LOGIN
+              </Link>
+            </>
+          )}
+        </div>
+      )}
     </nav>
   );
 };

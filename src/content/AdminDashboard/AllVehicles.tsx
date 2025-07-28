@@ -1,4 +1,4 @@
-import  { useState } from "react";
+import { useState } from "react";
 import { FiEdit } from "react-icons/fi";
 import { AiFillDelete } from "react-icons/ai";
 import {
@@ -37,14 +37,12 @@ export const AllVehicles = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  // State for the new vehicle form data (excluding the file)
   const [newVehicle, setNewVehicle] = useState({
     rentalRate: "",
     availability: "Available",
-    vehicleSpecId: null as number | null, // Initialize as null or number
+    vehicleSpecId: null as number | null,
   });
 
-  // State specifically for the selected image file
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
 
   const resetForm = () => {
@@ -53,8 +51,8 @@ export const AllVehicles = () => {
       availability: "Available",
       vehicleSpecId: null,
     });
-    setSelectedImage(null); // Reset the selected image file
-    setUploadProgress(0); // Reset upload progress
+    setSelectedImage(null);
+    setUploadProgress(0);
   };
 
   const handleDelete = (vehicleId: number) => {
@@ -89,15 +87,13 @@ export const AllVehicles = () => {
       toast.error("Rental rate required and must be a number.");
       return;
     }
-    // Validate that a vehicle spec has been selected and is a valid ID
+
     if (newVehicle.vehicleSpecId === null || newVehicle.vehicleSpecId <= 0) {
       toast.error("Please select a valid vehicle specification.");
       return;
     }
 
     let imageUrl = "";
-
-    // Only attempt image upload if a file is selected
     if (selectedImage) {
       const cloudFormData = new FormData();
       cloudFormData.append("file", selectedImage);
@@ -127,19 +123,16 @@ export const AllVehicles = () => {
     const payload = {
       rentalRate: Number(newVehicle.rentalRate),
       availability: newVehicle.availability === "Available",
-      imageUrl, // This will be an empty string if no image was selected/uploaded
-      vehicleSpecId: newVehicle.vehicleSpecId, // This is already a number or null
+      imageUrl,
+      vehicleSpecId: newVehicle.vehicleSpecId,
     };
-    console.log("Payload being sent:", payload);
-  console.log("Type of rentalRate:", typeof payload.rentalRate, "Value:", payload.rentalRate);
-  console.log("Type of vehicleSpecId:", typeof payload.vehicleSpecId, "Value:", payload.vehicleSpecId);
 
     try {
       await createVehicle(payload).unwrap();
       toast.success("Vehicle added successfully!");
       setIsModalOpen(false);
-      resetForm(); // Reset form fields and image state
-      refetch(); // Refetch vehicles to show the new one
+      resetForm();
+      refetch();
     } catch (err: any) {
       console.error("Vehicle creation failed:", err);
       toast.error(
@@ -153,15 +146,18 @@ export const AllVehicles = () => {
   return (
     <>
       <Toaster richColors position="top-right" />
-      <div className="bg-white border border-gray-200 shadow-md rounded-md p-6 mt-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-blue-950">All Vehicles</h1>
+      <div className="bg-white border border-gray-200 shadow-md rounded-md p-4 sm:p-6 mt-4 sm:mt-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+          <h1 className="text-lg sm:text-2xl font-bold text-blue-950">
+            All Vehicles
+          </h1>
           <button
             onClick={() => {
               setIsModalOpen(true);
-              resetForm(); // Ensure form is clean when opening
+              resetForm();
             }}
-            className="bg-blue-900 text-white px-4 py-2 rounded hover:bg-blue-800"
+            className="bg-blue-900 text-white px-3 py-2 sm:px-4 sm:py-2 rounded hover:bg-blue-800 text-sm sm:text-base"
           >
             + Add Vehicle
           </button>
@@ -183,44 +179,81 @@ export const AllVehicles = () => {
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full bg-white border border-gray-300 rounded-lg shadow-sm">
+            <table className="min-w-full bg-white border border-gray-300 rounded-lg shadow-sm text-xs sm:text-sm">
               <thead className="bg-blue-950 text-orange-400">
                 <tr>
-                  <th className="p-3 text-left">Vehicle ID</th>
-                  <th className="p-3 text-left">Rental Rate</th>
-                  <th className="p-3 text-left">Availability</th>
-                  <th className="p-3 text-left">Model</th>
-                  <th className="p-3 text-left">Brand</th>
-                  <th className="p-3 text-left">Color</th>
-                  <th className="p-3 text-left">Year</th>
-                  <th className="p-3 text-left">Fuel Type</th>
-                  <th className="p-3 text-left">Engine</th>
-                  <th className="p-3 text-left">Transmission</th>
-                  <th className="p-3 text-left">Seats</th>
-                  <th className="p-3 text-left">Features</th>
-                  <th className="p-3 text-left">Actions</th>
+                  <th className="p-2 sm:p-3 text-left">Vehicle ID</th>
+                  <th className="p-2 sm:p-3 text-left">Rental Rate</th>
+                  <th className="p-2 sm:p-3 text-left">Availability</th>
+                  <th className="hidden md:table-cell p-2 sm:p-3 text-left">
+                    Model
+                  </th>
+                  <th className="hidden md:table-cell p-2 sm:p-3 text-left">
+                    Brand
+                  </th>
+                  <th className="hidden lg:table-cell p-2 sm:p-3 text-left">
+                    Color
+                  </th>
+                  <th className="hidden lg:table-cell p-2 sm:p-3 text-left">
+                    Year
+                  </th>
+                  <th className="hidden xl:table-cell p-2 sm:p-3 text-left">
+                    Fuel
+                  </th>
+                  <th className="hidden xl:table-cell p-2 sm:p-3 text-left">
+                    Engine
+                  </th>
+                  <th className="hidden 2xl:table-cell p-2 sm:p-3 text-left">
+                    Transmission
+                  </th>
+                  <th className="hidden 2xl:table-cell p-2 sm:p-3 text-left">
+                    Seats
+                  </th>
+                  <th className="hidden 2xl:table-cell p-2 sm:p-3 text-left">
+                    Features
+                  </th>
+                  <th className="p-2 sm:p-3 text-left">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {vehicles.map((car: Vehicle) => (
-                  <tr key={car.vehicleId} className="hover:bg-blue-50 border-t">
-                    <td className="p-3">{car.vehicleId}</td>
-                    <td className="p-3">KSH {car.rentalRate}</td>
-                    <td className="p-3">
+                  <tr
+                    key={car.vehicleId}
+                    className="hover:bg-blue-50 border-t text-gray-700"
+                  >
+                    <td className="p-2 sm:p-3">{car.vehicleId}</td>
+                    <td className="p-2 sm:p-3">KSH {car.rentalRate}</td>
+                    <td className="p-2 sm:p-3">
                       {car.availability ? "Available" : "Unavailable"}
                     </td>
-                    <td className="p-3">{car.vehicleSpec?.model || "N/A"}</td>
-                    <td className="p-3">{car.vehicleSpec?.brand || "N/A"}</td>
-                    <td className="p-3">{car.vehicleSpec?.color || "N/A"}</td>
-                    <td className="p-3">{car.vehicleSpec?.year || "N/A"}</td>
-                    <td className="p-3">{car.vehicleSpec?.fuelType || "N/A"}</td>
-                    <td className="p-3">{car.vehicleSpec?.engineCapacity || "N/A"}</td>
-                    <td className="p-3">{car.vehicleSpec?.transmission || "N/A"}</td>
-                    <td className="p-3">{car.vehicleSpec?.seatingCapacity || "N/A"}</td>
-                    <td className="p-3 truncate" title={car.vehicleSpec?.features}>
+                    <td className="hidden md:table-cell p-2 sm:p-3">
+                      {car.vehicleSpec?.model || "N/A"}
+                    </td>
+                    <td className="hidden md:table-cell p-2 sm:p-3">
+                      {car.vehicleSpec?.brand || "N/A"}
+                    </td>
+                    <td className="hidden lg:table-cell p-2 sm:p-3">
+                      {car.vehicleSpec?.color || "N/A"}
+                    </td>
+                    <td className="hidden lg:table-cell p-2 sm:p-3">
+                      {car.vehicleSpec?.year || "N/A"}
+                    </td>
+                    <td className="hidden xl:table-cell p-2 sm:p-3">
+                      {car.vehicleSpec?.fuelType || "N/A"}
+                    </td>
+                    <td className="hidden xl:table-cell p-2 sm:p-3">
+                      {car.vehicleSpec?.engineCapacity || "N/A"}
+                    </td>
+                    <td className="hidden 2xl:table-cell p-2 sm:p-3">
+                      {car.vehicleSpec?.transmission || "N/A"}
+                    </td>
+                    <td className="hidden 2xl:table-cell p-2 sm:p-3">
+                      {car.vehicleSpec?.seatingCapacity || "N/A"}
+                    </td>
+                    <td className="hidden 2xl:table-cell p-2 sm:p-3 truncate">
                       {car.vehicleSpec?.features || "N/A"}
                     </td>
-                    <td className="p-3 flex gap-2">
+                    <td className="p-2 sm:p-3 flex gap-2">
                       <button className="text-blue-700 hover:bg-blue-100 p-1 rounded">
                         <FiEdit />
                       </button>
@@ -240,13 +273,15 @@ export const AllVehicles = () => {
         )}
       </div>
 
-      {/* Add Vehicle Modal */}
+      {/* Responsive Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-[600px] max-h-[90vh] overflow-y-auto shadow-xl">
-            <h2 className="text-xl font-bold mb-4 text-blue-900">Add New Vehicle</h2>
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md sm:max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl">
+            <h2 className="text-lg sm:text-xl font-bold mb-4 text-blue-900">
+              Add New Vehicle
+            </h2>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <input
                 type="number"
                 placeholder="Rental Rate"
@@ -267,26 +302,33 @@ export const AllVehicles = () => {
                 <option value="Unavailable">Unavailable</option>
               </select>
 
-              {/* Dropdown for Vehicle Specification ID */}
-              <div className="col-span-2">
+              <div className="col-span-1 sm:col-span-2">
                 {specsLoading ? (
                   <PuffLoader size={20} color="#1e3a8a" />
                 ) : specsError ? (
                   <p className="text-red-600">Error loading specs.</p>
                 ) : (
                   <select
-                    value={newVehicle.vehicleSpecId !== null ? newVehicle.vehicleSpecId : ""}
+                    value={
+                      newVehicle.vehicleSpecId !== null
+                        ? newVehicle.vehicleSpecId
+                        : ""
+                    }
                     onChange={(e) =>
                       setNewVehicle({
                         ...newVehicle,
-                        vehicleSpecId: e.target.value === "" ? null : Number(e.target.value),
+                        vehicleSpecId:
+                          e.target.value === "" ? null : Number(e.target.value),
                       })
                     }
                     className="border p-2 rounded w-full"
                   >
                     <option value="">Select Vehicle Specification</option>
                     {vehicleSpecs.map((spec: VehicleSpec) => (
-                      <option key={spec.vehicleSpecId} value={spec.vehicleSpecId}>
+                      <option
+                        key={spec.vehicleSpecId}
+                        value={spec.vehicleSpecId}
+                      >
                         {spec.brand} {spec.model} ({spec.year}) - {spec.color}
                       </option>
                     ))}
@@ -294,30 +336,31 @@ export const AllVehicles = () => {
                 )}
               </div>
 
-              {/* File input for image upload, now using selectedImage state */}
               <input
                 type="file"
                 accept="image/*"
                 onChange={(e) => setSelectedImage(e.target.files?.[0] || null)}
-                className="col-span-2 border p-2 rounded"
+                className="col-span-1 sm:col-span-2 border p-2 rounded"
               />
-              {selectedImage && uploadProgress > 0 && uploadProgress < 100 && (
-                <div className="col-span-2 text-sm text-gray-600">
-                  Uploading: {uploadProgress}%
-                </div>
-              )}
+              {selectedImage &&
+                uploadProgress > 0 &&
+                uploadProgress < 100 && (
+                  <div className="col-span-2 text-sm text-gray-600">
+                    Uploading: {uploadProgress}%
+                  </div>
+                )}
             </div>
 
-            <div className="mt-6 flex justify-end gap-4">
+            <div className="mt-6 flex flex-col sm:flex-row justify-end gap-4">
               <button
-                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 w-full sm:w-auto"
                 onClick={() => setIsModalOpen(false)}
               >
                 Cancel
               </button>
               <button
                 disabled={isCreating}
-                className="px-4 py-2 bg-blue-900 text-white rounded hover:bg-blue-800 disabled:opacity-50"
+                className="px-4 py-2 bg-blue-900 text-white rounded hover:bg-blue-800 w-full sm:w-auto"
                 onClick={handleAddVehicle}
               >
                 {isCreating ? "Saving..." : "Add Vehicle"}

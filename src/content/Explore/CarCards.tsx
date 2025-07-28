@@ -167,11 +167,11 @@ const CarCard: React.FC<CarCardProps> = ({ vehicles }) => {
 
       console.log('Availability result:', result);
       setAvailabilityResult({
-        isAvailable: Boolean(result.available), // Use the actual property from backend
+        isAvailable: Boolean(result.available), 
         message: result.message,
       });
     } catch (err: any) {
-      // Temporary: Assume vehicle is available until backend endpoint is implemented
+      
       console.log('Availability check failed (backend endpoint not implemented):', err);
       console.log('Error details:', err);
       setAvailabilityResult({
@@ -203,7 +203,7 @@ const CarCard: React.FC<CarCardProps> = ({ vehicles }) => {
       setTotalAmount(calculatedAmount);
       setErrorMessage('');
       
-      // Clear availability result when dates change
+      
       setAvailabilityResult(null);
     } else {
       setTotalAmount(0);
@@ -213,12 +213,12 @@ const CarCard: React.FC<CarCardProps> = ({ vehicles }) => {
   useEffect(() => {
     if (isBookingSuccess) {
       setSuccessMessage('Booking created successfully! Redirecting...');
-      setCurrentBookingAmount(totalAmount); // ✅ Save amount for payment modal
-      setCurrentBookingId(currentBookingId); // ✅ Correct assignment
+      setCurrentBookingAmount(totalAmount);
+      setCurrentBookingId(currentBookingId); 
 
       setTimeout(() => {
-        setIsModalOpen(false); // Close booking modal
-        setIsPaymentModalOpen(true); // ✅ Open payment modal
+        setIsModalOpen(false); 
+        setIsPaymentModalOpen(true);
         setSuccessMessage('');
       }, 1500);
     }
