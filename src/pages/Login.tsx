@@ -26,6 +26,8 @@ const Login: React.FC = () => {
     try {
       const res = await loginUser(data).unwrap();
 
+
+
       let parsedUser = res.user;
       if (typeof parsedUser === "string") {
         parsedUser = JSON.parse(parsedUser);

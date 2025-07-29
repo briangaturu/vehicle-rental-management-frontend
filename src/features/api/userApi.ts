@@ -5,7 +5,7 @@ import { apiDomain } from '../../proxxy';
 
 
 export interface User {
-  userId: number;
+  id: number;
   firstname: string;
   lastname: string;
   email: string;
@@ -31,7 +31,7 @@ export interface CreateUserPayload {
 }
 
 export interface UpdateUserPayload {
-  userId: number;
+  id: number;
   firstname: string;
   lastname: string;
   email: string;
@@ -43,7 +43,7 @@ export interface UpdateUserPayload {
 export interface BookingDetails {
   bookingId: number;
   vehicleId: number;
-  userId: number;
+  userId: number | undefined;
   startDate: string;
   endDate: string;
   totalCost: number;
@@ -104,7 +104,7 @@ export const userApi = createApi({
     }),
 
     // Update a user profile
-    updateUserProfile: builder.mutation<string, UpdateUserPayload>({
+    updateUserProfile: builder.mutation({
       query: ({ userId, ...patch }) => ({
         url: `users/${userId}`,
         method: 'PUT',
@@ -113,18 +113,15 @@ export const userApi = createApi({
       invalidatesTags: ["user", "users"],
     }),
 
-    // Profile image update (optional usage)
-    updateUserProfileImage: builder.mutation<
-      string,
-      { userId: number; profileUrl: string }
-    >({
-      query: ({ userId, profileUrl }) => ({
-        url: `users/${userId}`,
-        method: 'PUT',
-        body: { profileUrl },
-      }),
-      invalidatesTags: ['user', 'users'],
-    }),
+   
+updateUserProfileImage: builder.mutation<User, { userId: number; profileUrl: string }>({
+  query: ({ userId, profileUrl }) => ({
+    url: `users/${userId}/profile-image`,
+    method: 'PUT',
+    body: { profileUrl },
+  }),
+  invalidatesTags: ['user'],
+}),
 
     // Delete user
     deleteUserProfile: builder.mutation<string, number>({

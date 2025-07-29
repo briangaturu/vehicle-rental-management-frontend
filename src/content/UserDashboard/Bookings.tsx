@@ -36,8 +36,8 @@ const BookingTable: React.FC = () => {
     error: bookingsError,
     isFetching: isBookingsFetching,
     refetch,
-  } = useGetBookingsByUserIdQuery(parseInt(userId as string), {
-    skip: !userId || isNaN(parseInt(userId as string)),
+  } = useGetBookingsByUserIdQuery((userId), {
+    skip: !userId || isNaN((userId)),
   });
 
   useEffect(() => {
@@ -48,7 +48,7 @@ const BookingTable: React.FC = () => {
   }, [location.search, refetch]);
 
   const displayBookings: DisplayBooking[] =
-    fetchedBookings?.map((booking) => {
+    fetchedBookings?.map((booking:any) => {
       let status: 'Pending' | 'Active' | 'Completed' | 'Cancelled' | 'Confirmed' = 'Pending';
       const today = new Date();
       const returnDate = new Date(booking.returnDate);

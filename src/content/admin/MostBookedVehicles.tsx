@@ -2,20 +2,24 @@ import React, { useMemo } from "react";
 import { useGetAllBookingsQuery } from "../../features/api/bookingsApi";
 import { useGetAllVehiclesQuery } from "../../features/api/vehiclesApi";
 
+
+
 const MostBookedVehiclesTable: React.FC = () => {
   const { data: bookingsData = [], isLoading: loadingBookings, error } = useGetAllBookingsQuery();
   const { data: vehiclesData = [] } = useGetAllVehiclesQuery();
+  
 
-  // Compute most booked vehicles
+  
   const mostBookedVehicles = useMemo(() => {
     const counts: { [vehicleId: number]: { model: string; count: number } } = {};
 
     bookingsData.forEach((booking) => {
       const vehicle = vehiclesData.find((v: any) => v.vehicleId === booking.vehicleId);
-      // Fallback to 'make' if 'model' does not exist, otherwise use vehicleId as label
+      
       const model =
-        (vehicle && (vehicle.model || vehicle.manufacturer)) ||
-        `Vehicle #${booking.vehicleId}`;
+  (vehicle?.vehicleSpec?.model || vehicle?.vehicleSpec?.brand) ||
+  `Vehicle #${booking.vehicleId}`;
+
 
       if (!counts[booking.vehicleId]) {
         counts[booking.vehicleId] = { model, count: 0 };

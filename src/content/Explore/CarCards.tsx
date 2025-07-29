@@ -258,7 +258,7 @@ const CarCard: React.FC<CarCardProps> = ({ vehicles }) => {
     return;
   }
 
-  const parsedUserId = userId ? parseInt(userId) : NaN;
+  const parsedUserId = userId ? (userId) : NaN;
   const parsedLocationId = parseInt(selectedLocationId);
 
   if (isNaN(parsedUserId) || parsedUserId <= 0) {

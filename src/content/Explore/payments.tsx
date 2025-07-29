@@ -3,7 +3,7 @@ import { paymentsApi } from "../../features/api/PaymentsApi";
 interface Props {
   amount: number;
   bookingId: number | null;
-  userId:number | null;
+  userId:number | undefined;
 }
 
 export const StripeCheckoutButton = ({ amount, bookingId,userId }: Props) => {

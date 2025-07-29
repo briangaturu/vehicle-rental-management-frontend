@@ -7,7 +7,7 @@ import { useState } from "react";
 import { SaveIcon } from "lucide-react";
 
 interface UserDetail {
-  userId: number;
+  id: number;
   firstname: string;
   lastname: string;
   email: string;
@@ -126,13 +126,13 @@ export const AllUsers = () => {
               <tbody className="divide-y divide-gray-200">
                 {usersData.map((user: UserDetail, index) => (
                   <tr
-                    key={user.userId}
+                    key={user.id}
                     className={`hover:bg-gray-50 transition-colors ${
                       index % 2 === 0 ? "bg-white" : "bg-gray-50"
                     }`}
                   >
                     <td className="py-3 px-3 font-bold text-gray-900">
-                      #{user.userId}
+                      #{user.id}
                     </td>
                     <td className="py-3 px-3">
                       <div className="flex items-center gap-3">
@@ -178,7 +178,7 @@ export const AllUsers = () => {
                           <FiEdit className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => handleDelete(user.userId)}
+                          onClick={() => handleDelete(user.id)}
                           className="p-1 sm:p-2 text-red-600 hover:bg-red-100 rounded-lg"
                           title="Delete user"
                         >

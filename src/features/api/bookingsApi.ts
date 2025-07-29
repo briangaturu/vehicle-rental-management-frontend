@@ -13,7 +13,7 @@ export interface Booking {
   totalAmount: number;
   vehicleId: number;
   locationId: number;
-  userId: number;
+  userId: number | undefined;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -71,7 +71,7 @@ export const bookingsApi = createApi({
       providesTags: (_result, _error, id) => [{ type: "booking", id }],
     }),
 
-    getBookingsByUserId: builder.query<Booking[], number>({
+    getBookingsByUserId: builder.query({
       query: (userId) => `booking/user/${userId}`, // Changed from 'bookings/user?userId=' to 'booking/user/' for consistency with your route
       providesTags: ["bookings"],
     }),

@@ -3,7 +3,7 @@ import Swal from "sweetalert2";
 import {
   useGetAllBookingsQuery,
   useDeleteBookingMutation,
-  type Booking,
+  
 } from "../../features/api/bookingsApi";
 
 export const AllBookings = () => {
