@@ -273,8 +273,268 @@ export const AllVehicleSpecs = () => {
         )}
       </div>
 
-      {/* Add and Edit Modals (same as your code, but fixed) */}
-      {/* ... Include modals as in your provided code ... */}
+      {/* Add Vehicle Spec Modal */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl">
+            <div className="flex justify-between items-center border-b p-4">
+              <h2 className="text-xl font-semibold text-blue-950">Add New Vehicle Specification</h2>
+              <button onClick={() => setIsAddModalOpen(false)} className="text-gray-500 hover:text-gray-700">
+                &times;
+              </button>
+            </div>
+            <form onSubmit={handleCreateSpec} className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Manufacturer*</label>
+                  <input
+                    type="text"
+                    className="w-full p-2 border border-gray-300 rounded"
+                    value={newSpecForm.manufacturer}
+                    onChange={(e) => setNewSpecForm({ ...newSpecForm, manufacturer: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Model*</label>
+                  <input
+                    type="text"
+                    className="w-full p-2 border border-gray-300 rounded"
+                    value={newSpecForm.model}
+                    onChange={(e) => setNewSpecForm({ ...newSpecForm, model: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Year*</label>
+                  <input
+                    type="number"
+                    className="w-full p-2 border border-gray-300 rounded"
+                    value={newSpecForm.year}
+                    onChange={(e) => setNewSpecForm({ ...newSpecForm, year: parseInt(e.target.value) || 0 })}
+                    min="1900"
+                    max={new Date().getFullYear() + 5}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Color*</label>
+                  <input
+                    type="text"
+                    className="w-full p-2 border border-gray-300 rounded"
+                    value={newSpecForm.color}
+                    onChange={(e) => setNewSpecForm({ ...newSpecForm, color: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Fuel Type*</label>
+                  <select
+                    className="w-full p-2 border border-gray-300 rounded"
+                    value={newSpecForm.fuelType}
+                    onChange={(e) => setNewSpecForm({ ...newSpecForm, fuelType: e.target.value })}
+                    required
+                  >
+                    <option value="">Select Fuel Type</option>
+                    {fuelTypeOptions.map((type) => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Engine Capacity*</label>
+                  <input
+                    type="text"
+                    className="w-full p-2 border border-gray-300 rounded"
+                    value={newSpecForm.engineCapacity}
+                    onChange={(e) => setNewSpecForm({ ...newSpecForm, engineCapacity: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Transmission*</label>
+                  <select
+                    className="w-full p-2 border border-gray-300 rounded"
+                    value={newSpecForm.transmission}
+                    onChange={(e) => setNewSpecForm({ ...newSpecForm, transmission: e.target.value })}
+                    required
+                  >
+                    <option value="">Select Transmission</option>
+                    {transmissionOptions.map((type) => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Seating Capacity*</label>
+                  <input
+                    type="number"
+                    className="w-full p-2 border border-gray-300 rounded"
+                    value={newSpecForm.seatingCapacity}
+                    onChange={(e) => setNewSpecForm({ ...newSpecForm, seatingCapacity: parseInt(e.target.value) || 0 })}
+                    min="1"
+                    max="20"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Features*</label>
+                <textarea
+                  className="w-full p-2 border border-gray-300 rounded"
+                  rows={3}
+                  value={newSpecForm.features}
+                  onChange={(e) => setNewSpecForm({ ...newSpecForm, features: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <button
+                  type="button"
+                  onClick={() => setIsAddModalOpen(false)}
+                  className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-900 text-white rounded hover:bg-blue-800 disabled:opacity-50"
+                  disabled={isCreating}
+                >
+                  {isCreating ? "Adding..." : "Add Specification"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Vehicle Spec Modal */}
+      {isEditModalOpen && currentSpec && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl">
+            <div className="flex justify-between items-center border-b p-4">
+              <h2 className="text-xl font-semibold text-blue-950">Edit Vehicle Specification</h2>
+              <button onClick={closeEditModal} className="text-gray-500 hover:text-gray-700">
+                &times;
+              </button>
+            </div>
+            <form onSubmit={handleUpdateSpec} className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Manufacturer</label>
+                  <input
+                    type="text"
+                    className="w-full p-2 border border-gray-300 rounded"
+                    value={editSpecForm.manufacturer}
+                    onChange={(e) => setEditSpecForm({ ...editSpecForm, manufacturer: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Model</label>
+                  <input
+                    type="text"
+                    className="w-full p-2 border border-gray-300 rounded"
+                    value={editSpecForm.model}
+                    onChange={(e) => setEditSpecForm({ ...editSpecForm, model: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
+                  <input
+                    type="number"
+                    className="w-full p-2 border border-gray-300 rounded"
+                    value={editSpecForm.year || ''}
+                    onChange={(e) => setEditSpecForm({ ...editSpecForm, year: parseInt(e.target.value) || undefined })}
+                    min="1900"
+                    max={new Date().getFullYear() + 5}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
+                  <input
+                    type="text"
+                    className="w-full p-2 border border-gray-300 rounded"
+                    value={editSpecForm.color}
+                    onChange={(e) => setEditSpecForm({ ...editSpecForm, color: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Fuel Type</label>
+                  <select
+                    className="w-full p-2 border border-gray-300 rounded"
+                    value={editSpecForm.fuelType}
+                    onChange={(e) => setEditSpecForm({ ...editSpecForm, fuelType: e.target.value })}
+                  >
+                    <option value="">Select Fuel Type</option>
+                    {fuelTypeOptions.map((type) => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Engine Capacity</label>
+                  <input
+                    type="text"
+                    className="w-full p-2 border border-gray-300 rounded"
+                    value={editSpecForm.engineCapacity}
+                    onChange={(e) => setEditSpecForm({ ...editSpecForm, engineCapacity: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Transmission</label>
+                  <select
+                    className="w-full p-2 border border-gray-300 rounded"
+                    value={editSpecForm.transmission}
+                    onChange={(e) => setEditSpecForm({ ...editSpecForm, transmission: e.target.value })}
+                  >
+                    <option value="">Select Transmission</option>
+                    {transmissionOptions.map((type) => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Seating Capacity</label>
+                  <input
+                    type="number"
+                    className="w-full p-2 border border-gray-300 rounded"
+                    value={editSpecForm.seatingCapacity || ''}
+                    onChange={(e) => setEditSpecForm({ ...editSpecForm, seatingCapacity: parseInt(e.target.value) || undefined })}
+                    min="1"
+                    max="20"
+                  />
+                </div>
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Features</label>
+                <textarea
+                  className="w-full p-2 border border-gray-300 rounded"
+                  rows={3}
+                  value={editSpecForm.features}
+                  onChange={(e) => setEditSpecForm({ ...editSpecForm, features: e.target.value })}
+                />
+              </div>
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <button
+                  type="button"
+                  onClick={closeEditModal}
+                  className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-900 text-white rounded hover:bg-blue-800 disabled:opacity-50"
+                  disabled={isUpdating}
+                >
+                  {isUpdating ? "Updating..." : "Update Specification"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 };

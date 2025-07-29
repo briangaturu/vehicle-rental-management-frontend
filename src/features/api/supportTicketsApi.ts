@@ -19,6 +19,7 @@ export interface CreateTicketPayload {
 
 export interface UpdateTicketPayload extends Partial<CreateTicketPayload> {
   ticketId: number;
+  adminResponse?: string;
 }
 
 export const supportTicketsApi = createApi({
@@ -65,7 +66,7 @@ export const supportTicketsApi = createApi({
     updateTicket: builder.mutation<Ticket, UpdateTicketPayload>({
       query: ({ ticketId, ...patch }) => ({
         url: `ticket/${ticketId}`,
-        method: 'PUT',
+        method: 'PATCH',
         body: patch,
       }),
       invalidatesTags: ['tickets', 'ticket'],

@@ -41,13 +41,13 @@ const AllTickets = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  const onSubmit = async (_data: RespondPayload) => {
+  const onSubmit = async (data: RespondPayload) => {
     const toastId = toast.loading("Sending response...");
     try {
       if (selectedTicket) {
         await updateTicket({
           ticketId: selectedTicket.ticketId,
-          
+          adminResponse: data.adminResponse,
         }).unwrap();
         toast.success("Response sent successfully!", { id: toastId });
       }

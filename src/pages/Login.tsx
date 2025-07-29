@@ -22,6 +22,7 @@ const Login: React.FC = () => {
 
 
   const onSubmit = async (data: LoginFormValues) => {
+    console.log(data)
     const loadingToastId = toast.loading("Logging in...");
     try {
       const res = await loginUser(data).unwrap();
