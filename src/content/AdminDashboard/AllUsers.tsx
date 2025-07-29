@@ -1,5 +1,4 @@
 import { FiEdit } from "react-icons/fi";
-import { AiFillDelete } from "react-icons/ai";
 import { userApi } from "../../features/api/userApi";
 import type { RootState } from "../../app/store";
 import { useSelector } from "react-redux";
@@ -53,10 +52,7 @@ export const AllUsers = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  const handleDelete = (userId: number) => {
-    console.log("Delete user with ID:", userId);
-    // integrate your delete API here
-  };
+  
 
   const handleSubmit = async () => {
     console.log("Submit user type change for user:", selectedUser);
@@ -177,13 +173,7 @@ export const AllUsers = () => {
                         >
                           <FiEdit className="w-4 h-4" />
                         </button>
-                        <button
-                          onClick={() => handleDelete(user.id)}
-                          className="p-1 sm:p-2 text-red-600 hover:bg-[#F3F4F6] hover:text-[#001258] rounded-lg"
-                          title="Delete user"
-                        >
-                          <AiFillDelete className="w-4 h-4" />
-                        </button>
+                       
                       </div>
                     </td>
                   </tr>
