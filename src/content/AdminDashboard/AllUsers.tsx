@@ -100,36 +100,36 @@ export const AllUsers = () => {
         ) : (
           <div className="overflow-x-auto">
             {/* Responsive Table */}
-            <table className="w-full text-sm">
+            <table className="w-full text-sm border border-[#001258] rounded-lg">
               <thead>
-                <tr className="border-b-2 border-gray-200">
-                  <th className="text-left py-3 px-3 font-semibold text-gray-700 uppercase tracking-wider">
+                <tr className="bg-[#001258]">
+                  <th className="text-left py-3 px-3 font-semibold text-white uppercase tracking-wider border-b border-[#001258]">
                     User ID
                   </th>
-                  <th className="text-left py-3 px-3 font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="text-left py-3 px-3 font-semibold text-white uppercase tracking-wider border-b border-[#001258]">
                     Name
                   </th>
-                  <th className="hidden sm:table-cell text-left py-3 px-3 font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="hidden sm:table-cell text-left py-3 px-3 font-semibold text-white uppercase tracking-wider border-b border-[#001258]">
                     Email
                   </th>
-                  <th className="hidden lg:table-cell text-left py-3 px-3 font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="hidden lg:table-cell text-left py-3 px-3 font-semibold text-white uppercase tracking-wider border-b border-[#001258]">
                     Joined On
                   </th>
-                  <th className="text-left py-3 px-3 font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="text-left py-3 px-3 font-semibold text-white uppercase tracking-wider border-b border-[#001258]">
                     Role
                   </th>
-                  <th className="text-left py-3 px-3 font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="text-left py-3 px-3 font-semibold text-white uppercase tracking-wider border-b border-[#001258]">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody>
                 {usersData.map((user: UserDetail, index) => (
                   <tr
                     key={user.id}
-                    className={`hover:bg-gray-50 transition-colors ${
-                      index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                    }`}
+                    className={`border-b border-[#001258] transition-colors duration-200 ${
+                      index % 2 === 0 ? "bg-white" : "bg-[#F3F4F6]"
+                    } hover:bg-[#F3F4F6]`}
                   >
                     <td className="py-3 px-3 font-bold text-gray-900">
                       #{user.id}
@@ -172,14 +172,14 @@ export const AllUsers = () => {
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleModalToggle(user)}
-                          className="p-1 sm:p-2 text-blue-600 hover:bg-blue-100 rounded-lg"
+                          className="p-1 sm:p-2 text-[#001258] hover:bg-[#F3F4F6] hover:text-[#001258] rounded-lg"
                           title="Edit user"
                         >
                           <FiEdit className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(user.id)}
-                          className="p-1 sm:p-2 text-red-600 hover:bg-red-100 rounded-lg"
+                          className="p-1 sm:p-2 text-red-600 hover:bg-[#F3F4F6] hover:text-[#001258] rounded-lg"
                           title="Delete user"
                         >
                           <AiFillDelete className="w-4 h-4" />

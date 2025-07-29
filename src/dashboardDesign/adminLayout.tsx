@@ -11,7 +11,9 @@ import AllTickets from '../content/AdminDashboard/AllTickets';
 import { AllUsers } from '../content/AdminDashboard/AllUsers';
 import { AllPayments } from '../content/AdminDashboard/AllPayments';
 import AllVehicleSpecs from '../content/AdminDashboard/AllVehicleSpecs';
+import Profile from '../content/AdminDashboard/profile';
 import { FaBars } from 'react-icons/fa';
+import LocationsPage from '../content/AdminDashboard/OurBranches';
 
 const AdminLayout: React.FC = () => {
   const [activeView, setActiveView] = useState('Dashboard');
@@ -43,6 +45,10 @@ const AdminLayout: React.FC = () => {
         return <AllVehicleSpecs />;
       case 'Payments':
         return <AllPayments />;
+        case 'AdminProfile' :
+          return <Profile/>;
+          case 'Location':
+            return <LocationsPage/>;
       case 'Logout':
         console.log("Perform logout logic here.");
         return <h2 className="text-2xl font-bold">Logging out...</h2>;

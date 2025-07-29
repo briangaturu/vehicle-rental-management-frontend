@@ -7,7 +7,9 @@ import {
   FaMoneyBillAlt,
   FaHeadphones,
   FaPowerOff,
-  FaCog, // ✅ NEW: Import FaCog icon for specs
+  FaCog,
+  FaUser,         // ✅ NEW: Profile icon
+  FaMapMarkerAlt  // ✅ NEW: Location icon
 } from 'react-icons/fa';
 import { useDispatch } from 'react-redux';
 import { clearCredentials } from '../features/auth/authSlice';
@@ -35,12 +37,14 @@ const AdminSidenav: React.FC<AdminSidenavProps> = ({ onSelect }) => {
       <nav className="flex-1 space-y-4">
         <NavItem icon={<FaTachometerAlt />} label="Dashboard" onClick={onSelect} />
         <NavItem icon={<FaCar />} label="Vehicles" onClick={onSelect} />
-        {/* ✅ NEW: Add NavItem for Vehicle Specs */}
         <NavItem icon={<FaCog />} label="Vehicle Specs" onClick={onSelect} />
         <NavItem icon={<FaClipboardList />} label="Bookings" onClick={onSelect} />
         <NavItem icon={<FaUsers />} label="Users" onClick={onSelect} />
         <NavItem icon={<FaMoneyBillAlt />} label="Payments" onClick={onSelect} />
         <NavItem icon={<FaHeadphones />} label="Support" onClick={onSelect} />
+        {/* ✅ NEW: Profile and Location Nav Items */}
+        <NavItem icon={<FaUser />} label="AdminProfile" onClick={onSelect} />
+        <NavItem icon={<FaMapMarkerAlt />} label="Location" onClick={onSelect} />
       </nav>
 
       <button
