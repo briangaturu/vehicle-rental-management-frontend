@@ -22,7 +22,7 @@ interface CarCardProps {
 
 const CarCard: React.FC<CarCardProps> = ({ vehicles }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  
   const [isPayLaterModalOpen, setIsPayLaterModalOpen] = useState(false);
   const [currentBookingAmount, setCurrentBookingAmount] = useState<number>(0);
   const [currentBookingId, setCurrentBookingId] = useState<number | null>(null);

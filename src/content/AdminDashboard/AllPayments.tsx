@@ -1,5 +1,5 @@
 // src/pages/PaymentsTable.tsx
-import React, { useState } from "react";
+import { useState } from "react";
 import { useGetAllPaymentsQuery, useUpdatePaymentMutation } from "../../features/api/PaymentsApi";
 import { PuffLoader } from "react-spinners";
 import Swal from "sweetalert2";
