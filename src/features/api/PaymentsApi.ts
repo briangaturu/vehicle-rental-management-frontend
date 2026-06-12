@@ -25,15 +25,26 @@ export interface UpdatePaymentPayload extends Partial<CreatePaymentPayload> {
   paymentId: number;
 }
 
+// M-Pesa
+export interface MpesaSTKPushPayload {
+  phone: string;
+  amount: number;
+  bookingId: number;
+  userId: number;
+}
+
+export interface MpesaSTKPushResponse {
+  message: string;
+  checkoutRequestId: string;
+}
+
 export const paymentsApi = createApi({
   reducerPath: "paymentsApi",
   baseQuery: fetchBaseQuery({
-    baseUrl:apiDomain,
+    baseUrl: apiDomain,
     prepareHeaders: (headers, { getState }) => {
       const token = (getState() as RootState).auth.token;
-      if (token) {
-        headers.set("Authorization", `${token}`);
-      }
+      if (token) headers.set("Authorization", `${token}`);
       headers.set("Content-Type", "application/json");
       return headers;
     },
@@ -49,7 +60,7 @@ export const paymentsApi = createApi({
       providesTags: (_res, _err, id) => [{ type: "payment", id }],
     }),
     getPaymentsByUserId: builder.query<Payment[], number>({
-      query: (userId) => `payments/user/${userId}`, // ✅ corrected path
+      query: (userId) => `payments/user/${userId}`,
       providesTags: ["payments"],
     }),
     createPayment: builder.mutation<Payment, CreatePaymentPayload>({
@@ -83,13 +94,21 @@ export const paymentsApi = createApi({
       }),
       invalidatesTags: ["payment"],
     }),
+    initiateMpesaPayment: builder.mutation<MpesaSTKPushResponse, MpesaSTKPushPayload>({
+      query: (payload) => ({
+        url: "payments/mpesa/stkpush",
+        method: "POST",
+        body: payload,
+      }),
+      invalidatesTags: ["payments"],
+    }),
   }),
 });
 
 export const {
   useGetAllPaymentsQuery,
   useGetPaymentByIdQuery,
-  useGetPaymentsByUserIdQuery, // ✅ now exported
+  useGetPaymentsByUserIdQuery,
   useCreatePaymentMutation,
   useUpdatePaymentMutation,
   useDeletePaymentMutation,

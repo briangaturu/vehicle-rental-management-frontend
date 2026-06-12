@@ -22,40 +22,37 @@ const Login: React.FC = () => {
 
 
   const onSubmit = async (data: LoginFormValues) => {
-    console.log(data)
-    const loadingToastId = toast.loading("Logging in...");
-    try {
-      const res = await loginUser(data).unwrap();
+  const loadingToastId = toast.loading("Logging in...");
+  try {
+    const res = await loginUser(data).unwrap();
 
-
-
-      let parsedUser = res.user;
-      if (typeof parsedUser === "string") {
-        parsedUser = JSON.parse(parsedUser);
-      }
-
-      dispatch(setCredentials({
-        user: parsedUser,
-        token: res.token,
-        role: res.role,
-      }));
-
-      toast.success("Login successful!", { id: loadingToastId });
-
-      if (res.role === 'admin') {
-        navigate('/admin');
-      } else if (res.role === 'user') {
-        navigate('/user');
-      } else {
-        navigate('/');
-        toast.error("Login failed: Invalid user type", { id: loadingToastId });
-      }
-
-    } catch (err: any) {
-      toast.error('Login failed: ' + (err.data?.message || err.message || err.error));
-      toast.dismiss(loadingToastId);
+    let parsedUser = res.user;
+    if (typeof parsedUser === "string") {
+      parsedUser = JSON.parse(parsedUser);
     }
-  };
+
+    dispatch(setCredentials({
+      user: parsedUser,
+      token: res.token,
+      role: res.role,
+    }));
+
+    toast.success("Login successful!", { id: loadingToastId });
+
+    if (res.role === 'admin') {
+      navigate('/admin');
+    } else if (res.role === 'user') {
+      navigate('/user');
+    } else {
+      navigate('/');
+      toast.error("Invalid user type", { id: loadingToastId });
+    }
+
+  } catch (err: any) {
+    const message = err.data?.error || err.message || 'Login failed. Please try again.';
+    toast.error(message, { id: loadingToastId });
+  }
+};
 
   return (
     <>

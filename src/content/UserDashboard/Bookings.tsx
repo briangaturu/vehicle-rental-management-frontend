@@ -7,7 +7,7 @@ import type { RootState } from '../../app/store';
 import { type Booking as BackendBooking } from '../../features/api/bookingsApi';
 import { useGetVehicleByIdQuery } from '../../features/api/vehiclesApi';
 import { useGetBookingsByUserIdQuery } from '../../features/api/bookingsApi';
-import { StripeCheckoutButton } from '../Explore/payments';
+import { PaymentButton } from '../Explore/payments';
 
 interface DisplayBooking extends BackendBooking {
   vehicleName?: string;
@@ -156,7 +156,7 @@ const BookingTable: React.FC = () => {
                 </div>
 
                 <div className="pt-3 border-t border-gray-100">
-                  <StripeCheckoutButton
+                  <PaymentButton
                     amount={booking.totalAmount}
                     bookingId={booking.bookingId}
                     userId={userId}

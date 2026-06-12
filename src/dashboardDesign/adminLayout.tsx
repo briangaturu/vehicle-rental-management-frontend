@@ -9,7 +9,7 @@ import LatestBookingsTable from '../content/admin/LatestBookingsTable';
 import MostBookedVehiclesTable from '../content/admin/MostBookedVehicles';
 import AllTickets from '../content/AdminDashboard/AllTickets';
 import { AllUsers } from '../content/AdminDashboard/AllUsers';
-import { AllPayments } from '../content/AdminDashboard/AllPayments';
+import AllPayments from '../content/AdminDashboard/AllPayments';
 import AllVehicleSpecs from '../content/AdminDashboard/AllVehicleSpecs';
 import Profile from '../content/AdminDashboard/profile';
 import { FaBars } from 'react-icons/fa';
