@@ -108,7 +108,7 @@ export const vehicleApi = createApi({
 export const {
   useGetAllVehiclesQuery,
   useGetVehicleByIdQuery,
-  useGetAllVehicleSpecsQuery, // ⭐️ NEW: Export the new hook
+  useGetAllVehicleSpecsQuery,
   useCreateVehicleMutation,
   useUpdateVehicleMutation,
   useDeleteVehicleMutation,
